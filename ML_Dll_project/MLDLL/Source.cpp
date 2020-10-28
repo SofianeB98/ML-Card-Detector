@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <vector>
-
 //Build la dll en debug (et se mettre en debug)
 //permet d'attacher la source.cpp à unity et de voir step by step
 //ce qu'il se passe
@@ -17,16 +16,33 @@ struct test
 
 struct MLP
 {
-	std::vector<int> d; //correspond à npl
-	int L; // correspond à npl.size() - 1
+	/// <summary>
+	/// correspond à npl
+	/// </summary>
+	std::vector<int> d;
 
+	/// <summary>
+	/// correspond à npl.size() - 1
+	/// </summary>
+	int L; 
+
+	/// <summary>
+	/// Three Dimensionnal Array weight
+	/// [][][] model
+	/// </summary>
 	std::vector< //[]
 		std::vector< //[][]
-		std::vector<double> > > w; //[][][] //model
+		std::vector<double> > > w; 
 
-	std::vector< std::vector<double> > x; //valeur effective des neuronnes
+	/// <summary>
+	/// Valeur effective des neuronnes
+	/// </summary>
+	std::vector< std::vector<double> > x; 
 
-	std::vector< std::vector<double> > deltas; //marche d'erreur
+	/// <summary>
+	/// marche d'erreur
+	/// </summary>
+	std::vector< std::vector<double> > deltas; 
 };
 	
 	//npl ==> [input: 3, hidden: 5,5,5, out: 1], doit etre donnée a chaque fois
@@ -73,7 +89,7 @@ struct MLP
 			mlp->d.emplace_back(npl[n]);
 		
 		mlp->w.reserve(mlp->L + 1);
-		for (int l = 0; l < mlp->L - 1; ++l)
+		for (int l = 0; l < mlp->L - 1; ++l) // Ce serait pas l < mlp->L ?
 		{
 
 			std::vector< std::vector<double> > a;
@@ -81,6 +97,7 @@ struct MLP
 			if (l != 0)
 			{
 				a.reserve(npl[l - 1] + 2);
+
 				for (int i = 0; i < npl[l - 1] + 1; ++i)
 				{
 					std::vector<double> b;
@@ -102,8 +119,11 @@ struct MLP
 			}
 
 			mlp->w.push_back(a);
+
+
 		}
 
+		
 
 		
 		return mlp;
@@ -164,6 +184,100 @@ struct MLP
 		delete model;
 	}
 	
+	__declspec(dllexport) void forward_pass(MLP* model, double* inputs, bool isClassification) 
+	{
+		for(int j = 0; j < model->d[0]; j++)
+		{
+			model->x[0][j + 1] = inputs[j];
+		}
+
+		for(int l = 1; l < model->L + 1; l++)
+		{
+			for(int j = 1; j < model->d[l] + 1; j++)
+			{
+				double sum = 0.0;
+				for (int i = 0; i < model->d[l - 1]; i++) 
+				{
+					sum += model->x[l - 1][i] * model->w[l][i][j];
+				}
+				if (l == model->L && !isClassification) 
+				{
+					model->x[l][j] = sum;
+				}
+				else 
+				{
+					model->x[l][j] = tanh(sum);
+				}
+			}
+		}
+	}
+
+	__declspec(dllexport) void train(MLP* model, double* allInputs, double* allExpectedOutputs, int sampleCount, bool isClassification, int epochs, double alpha)
+	{
+		int inputsSize = model->d[0];
+		int outputsSize = model->d[model->L];
+
+		for (int it = 0; it < epochs; it++) 
+		{
+			int k = rand() % sampleCount - 1;//http://www.cplusplus.com/reference/cstdlib/rand/
+			// Initialisation de x_k et y_k
+			// On récupère une slice des inputs et outputs en fonction de random
+			// Correspond à ces lignes dans le code python:
+			// x_k = all_inputs[inputs_size * k: inputs_size * (k + 1)]
+			// y_k = all_expected_outputs[outputs_size * k:outputs_size * (k + 1)]
+			int x_k_length = inputsSize * (k + 1) - (inputsSize * k);
+			double* x_k = new double[x_k_length]; // PAS SUR
+			for (int i = 0; i < x_k_length; i++) 
+			{
+				x_k[i] = allInputs[inputsSize * (k)+i];
+			}
+
+			int y_k_length = outputsSize * (k + 1) - (outputsSize * k);
+			double* y_k = new double[y_k_length]; // PAS SUR
+			for (int i = 0; i < y_k_length; i++)
+			{
+				y_k[i] = allExpectedOutputs[outputsSize * (k)+i];
+			}
+
+			forward_pass(model, x_k, isClassification);
+
+			for(int j = 1; j < model->d[model->L] + 1; j++)
+			{
+				model->deltas[model->L][j] = model->x[model->L][j] - y_k[j - 1];
+				if (isClassification) {
+					model->deltas[model->L][j] *= 1 - pow(model->x[model->L][j], 2);
+				}
+			}
+
+			for (int l = model->L; l > 1; l--) // correspond à reversed(range(2, self.L + 1))
+			{
+				for (int i = 0; i < model->d[l - 1] + 1; i++) 
+				{
+					float sum = 0;
+					for (int j = 1; j < model->L + 1; j++) 
+					{
+						sum += model->w[l][i][j] * model->deltas[l][j];
+					}
+					model->deltas[l - 1][i] = (1 - pow(model->x[l - 1][i], 2) * sum);
+				}
+			}
+
+			for(int l = 1; l < model->L + 1; l++)
+			{
+				for (int i = 0; i < model->d[l - 1] + 1; i++) 
+				{
+					for (int j = 1; j < model->d[l] + 1; j++) 
+					{
+						model->w[l][i][j] = alpha * model->x[l - 1][i] * model->deltas[l][j];
+					}
+				}
+			}
+
+			delete[] x_k;
+			delete[] y_k;
+		}
+	}
+
 	//__declspec(dllexport) Permet de spécifier, pour windows, que cette fonction va en dll
 	//l'interface d'une fonction doit respecter les code C
 	//mais son contenu peut faire appel à du code C++ / C / Other
