@@ -8,19 +8,19 @@ public class TestMLDLL : MonoBehaviour
     {
         Debug.Log( MLDLLWrapper.MyAdd(2, 3) + " the result of my C code dll");
 
-        var model = MLDLLWrapper.CreateLinearModel(10);
-
-        var inputs = new double[] {1.0, 2.0, 3.0};
-        var result = MLDLLWrapper.PredictLinearModelMulticlassClassification(model, inputs, 3, 3);
-
-        var result_managed = new double[3];
-        //Permet de copier le contenue d'un Double* dans un double[] du c++ vers le c#
-        Marshal.Copy(result, result_managed, 0, 3);
+        var model = MLDLLWrapper.CreateModel(new int[] {2, 2, 1}, 3);
         
-        //a changer avec u ntruc clean
-        //car delete linear model est censé juste delete les model
-        MLDLLWrapper.DeleteLinearModel(result);
+        Debug.Log( MLDLLWrapper.MyAdd(model) + " the result");
+
+        MLDLLWrapper.DeleteModel(model);
+    }
+
+    private void Update()
+    {
+        var model = MLDLLWrapper.CreateModel(new int[] {2, 2, 1}, 3);
         
-        MLDLLWrapper.DeleteLinearModel(model);
+        Debug.Log( MLDLLWrapper.MyAdd(model) + " the result");
+
+        MLDLLWrapper.DeleteModel(model);
     }
 }
