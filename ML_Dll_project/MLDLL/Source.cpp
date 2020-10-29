@@ -236,6 +236,18 @@ extern "C" {
 		}
 	}
 
+	__declspec(dllexport) double* predict(MLP* model, double inputs[], bool isClass)
+	{
+		forward_pass(model, inputs, isClass);
+		
+		double* d = new double[model->x[model->L].size()];
+
+		for (int i = 0; i < model->x[model->L].size(); ++i)
+			d[i] = model->x[model->L][i];
+
+		return d;
+	}
+	
 	__declspec(dllexport) void train(MLP* model, double allInputs[], double allExpectedOutputs[],
 		int sampleCount, int epochs, double alpha, bool isClassification)
 	{
@@ -325,6 +337,10 @@ extern "C" {
 		delete model;
 	}
 
+	__declspec(dllexport) void delete_double_array_ptr(double* ptr)
+	{
+		delete[] ptr;
+	}
 
 
 	//__declspec(dllexport) Permet de spécifier, pour windows, que cette fonction va en dll
