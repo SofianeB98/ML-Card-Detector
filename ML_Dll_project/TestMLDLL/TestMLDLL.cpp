@@ -7,41 +7,63 @@ extern "C"{
 
 int main()
 {
-    std::cout << "Hello World!\n " << my_add(42, 51) << std::endl;
-	int* npl = new int[3]{2, 3, 1};
-	MLP* model = create_model(npl, 5);
+    std::cout << "Hello World!  " << my_add(42, 51) << std::endl;
+	int npl[] = {2, 3, 1};
+	MLP* model = create_model(npl, 2);
 
-	int* X = new int[8]
-	{
-		0, 0, 0, 1, 1, 0, 1, 1
+	double X[8] = {
+		1.0, 1.0,
+		2.0, 3.0,
+		3.0, 3.0,
 	};
 
-	int* Y = new int[4]{
-		-1, 1, 1, -1
+	double Y[4] = {
+		1.0,
+		-1.0,
+		-1.0,
 	};
 
+	const int sampleSize = 3;
 
-	int sampleSize = 4;
+	//std::cout << "BEFORE TRAINING !!" << std::endl;
+	//for(int k = 0; k < sampleSize; ++k)
+	//{
+	//	int sliceSize = (2 * (k + 1)) - (k * 2);
+	//	double* slice = new double[sliceSize];
+	//	for (int i = 0; i < sliceSize; i++) 
+	//		slice[i] = (double)X[k * 2] + i;
+	//	
+	//	forward_pass(model, slice, true);
 
-	std::cout << "BEFORE TRAINING !!" << std::endl;
-	for(int k = 0; k < sampleSize; k++)
+	//	for (int i = 1; i < model->x[model->L].size(); i++)
+	//		std::cout << model->x[model->L][i] << std::endl;
+
+	//	delete[] slice;
+	//}
+
+	//delete_model(model);
+
+	//model = create_model(npl, 3);
+	
+	train(model, X, Y, sampleSize, 100, 0.01, true);
+
+	std::cout << "AFTER TRAINING !!" << std::endl;
+	for (int k = 0; k < sampleSize; ++k)
 	{
 		int sliceSize = (2 * (k + 1)) - (k * 2);
 		double* slice = new double[sliceSize];
-		for (int i = 0; i < sliceSize; i++) 
-		{
+		for (int i = 0; i < sliceSize; i++)
 			slice[i] = (double)X[k * 2] + i;
-		}
-		forward_pass(model, slice, false);
 
-		for (int i = 1; i < model->L + 1; i++) {
-			std::cout << model->x[model->L][i];
-		}
+		forward_pass(model, slice, true);
 
+		for (int i = 1; i < model->x[model->L].size(); i++)
+			std::cout << model->x[model->L][i] << std::endl;
+
+		delete[] slice;
 	}
 
-	delete[] npl;
-	delete[] X;
-	delete[] Y;
+	delete_model(model);
 
+	return 0;
 }

@@ -211,98 +211,93 @@ struct MLP
 		return mlp;
 	}
 
-	__declspec(dllexport) void forward_pass(MLP* model, double* inputs, bool isClassification) 
+	__declspec(dllexport) void forward_pass(MLP* model, double inputs[], bool isClassification) 
 	{
-		for(int j = 0; j < model->d[0]; j++)
-		{
+		for(int j = 0; j < model->d[0]; ++j)
 			model->x[0][j + 1] = inputs[j];
-		}
 
-		for(int l = 1; l < model->L + 1; l++)
+		for(int l = 1; l < model->L + 1; ++l)
 		{
-			for(int j = 1; j < model->d[l] + 1; j++)
+			for(int j = 1; j < model->d[l] + 1; ++j)
 			{
 				double sum = 0.0;
-				for (int i = 0; i < model->d[l - 1]; i++) 
-				{
+				
+				for (int i = 0; i < model->d[l - 1] + 1; ++i) 
 					sum += model->x[l - 1][i] * model->w[l][i][j];
-				}
+				
+
+				auto th = tanh(sum);
 				if (l == model->L && !isClassification) 
-				{
 					model->x[l][j] = sum;
-				}
 				else 
-				{
 					model->x[l][j] = tanh(sum);
-				}
 			}
 		}
 	}
 
-	__declspec(dllexport) void train(MLP* model, double* allInputs, double* allExpectedOutputs, 
-		int sampleCount, bool isClassification, int epochs, double alpha)
+	__declspec(dllexport) void train(MLP* model, double allInputs[], double allExpectedOutputs[], 
+		int sampleCount, int epochs, double alpha, bool isClassification)
 	{
-		int inputsSize = model->d[0];
-		int outputsSize = model->d[model->L];
+		const int inputsSize = model->d[0];
+		const int outputsSize = model->d[model->L];
 
-		for (int it = 0; it < epochs; it++) 
+		for (int it = 0; it < epochs; ++it) 
 		{
-			int k = rand() % sampleCount - 1;//http://www.cplusplus.com/reference/cstdlib/rand/
+			int k = rand() % sampleCount - 1; //http://www.cplusplus.com/reference/cstdlib/rand/
+			
 			// Initialisation de x_k et y_k
 			// On récupère une slice des inputs et outputs en fonction de random
 			// Correspond à ces lignes dans le code python:
 			// x_k = all_inputs[inputs_size * k: inputs_size * (k + 1)]
 			// y_k = all_expected_outputs[outputs_size * k:outputs_size * (k + 1)]
-			int x_k_length = inputsSize * (k + 1) - (inputsSize * k);
-			double* x_k = new double[x_k_length]; // PAS SUR
-			for (int i = 0; i < x_k_length; i++) 
+			
+			const int x_k_length = inputsSize * (k + 1) - (inputsSize * k);
+			//double* x_k = new double[x_k_length]; // PAS SUR
+			std::vector<double> x_k;
+			x_k.reserve(x_k_length);
+			for (int i = 0; i < x_k_length; ++i) 
 			{
-				x_k[i] = allInputs[inputsSize * (k)+i];
+				x_k.emplace_back(allInputs[inputsSize * k + i]);
 			}
 
-			int y_k_length = outputsSize * (k + 1) - (outputsSize * k);
-			double* y_k = new double[y_k_length]; // PAS SUR
+			const int y_k_length = outputsSize * (k + 1) - (outputsSize * k);
+			//double* y_k = new double[y_k_length]; // PAS SUR
+			std::vector<double> y_k;
+			y_k.reserve(y_k_length);
 			for (int i = 0; i < y_k_length; i++)
 			{
-				y_k[i] = allExpectedOutputs[outputsSize * (k)+i];
+				y_k.emplace_back(allExpectedOutputs[outputsSize * k + i]);
 			}
 
-			forward_pass(model, x_k, isClassification);
+			forward_pass(model, x_k.data(), isClassification);
 
-			for(int j = 1; j < model->d[model->L] + 1; j++)
+			for(int j = 1; j < model->d[model->L] + 1; ++j)
 			{
 				model->deltas[model->L][j] = model->x[model->L][j] - y_k[j - 1];
-				if (isClassification) {
-					model->deltas[model->L][j] *= 1 - pow(model->x[model->L][j], 2);
-				}
+				if (isClassification) 
+					model->deltas[model->L][j] *= 1 - model->x[model->L][j] * model->x[model->L][j];//a * a plus performant que pow(a, 2)
 			}
 
 			for (int l = model->L; l > 1; l--) // correspond à reversed(range(2, self.L + 1))
 			{
-				for (int i = 0; i < model->d[l - 1] + 1; i++) 
+				for (int i = 0; i < model->d[l - 1] + 1; ++i) 
 				{
-					float sum = 0;
-					for (int j = 1; j < model->L + 1; j++) 
-					{
+					double sum = 0.0;
+					
+					for (int j = 1; j < model->d[l] + 1; ++j) 
 						sum += model->w[l][i][j] * model->deltas[l][j];
-					}
-					model->deltas[l - 1][i] = (1 - pow(model->x[l - 1][i], 2) * sum);
+					
+					model->deltas[l - 1][i] = (1.0 - model->x[l - 1][i] * model->x[l - 1][i]) * sum;
 				}
 			}
 
-			for(int l = 1; l < model->L + 1; l++)
-			{
-				for (int i = 0; i < model->d[l - 1] + 1; i++) 
-				{
-					for (int j = 1; j < model->d[l] + 1; j++) 
-					{
-						model->w[l][i][j] = alpha * model->x[l - 1][i] * model->deltas[l][j];
-					}
-				}
-			}
+			for(int l = 1; l < model->L + 1; ++l)
+				for (int i = 0; i < model->d[l - 1] + 1; ++i) 
+					for (int j = 1; j < model->d[l] + 1; ++j) 
+						model->w[l][i][j] -= alpha * model->x[l - 1][i] * model->deltas[l][j];
 
-			delete[] x_k;
-			delete[] y_k;
+			//delete[] x_k;
+			//delete[] y_k;
 		}
 	}
 
