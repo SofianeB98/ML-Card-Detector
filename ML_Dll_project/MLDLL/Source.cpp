@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <ctime>
 #include <vector>
 //Build la dll en debug (et se mettre en debug)
 //permet d'attacher la source.cpp à unity et de voir step by step
@@ -6,52 +7,52 @@
 
 extern "C" {
 
-struct test
-{
-	int a;
-	int b;
+	struct test
+	{
+		int a;
+		int b;
 
-	std::vector<double> w;
-};
+		std::vector<double> w;
+	};
 
-struct MLP
-{
-	/// <summary>
-	/// correspond à npl
-	/// </summary>
-	std::vector<int> d;
+	struct MLP
+	{
+		/// <summary>
+		/// correspond à npl
+		/// </summary>
+		std::vector<int> d;
 
-	/// <summary>
-	/// correspond à npl.size() - 1
-	/// </summary>
-	int L; 
+		/// <summary>
+		/// correspond à npl.size() - 1
+		/// </summary>
+		int L;
 
-	/// <summary>
-	/// Three Dimensionnal Array weight
-	/// [][][] model
-	/// </summary>
-	std::vector< //[]
-		std::vector< //[][]
-		std::vector<double> > > w; 
+		/// <summary>
+		/// Three Dimensionnal Array weight
+		/// [][][] model
+		/// </summary>
+		std::vector< //[]
+			std::vector< //[][]
+			std::vector<double> > > w;
 
-	/// <summary>
-	/// Valeur effective des neuronnes
-	/// </summary>
-	std::vector< std::vector<double> > x; 
+		/// <summary>
+		/// Valeur effective des neuronnes
+		/// </summary>
+		std::vector< std::vector<double> > x;
 
-	/// <summary>
-	/// marche d'erreur
-	/// </summary>
-	std::vector< std::vector<double> > deltas; 
-};
-	
+		/// <summary>
+		/// marche d'erreur
+		/// </summary>
+		std::vector< std::vector<double> > deltas;
+	};
+
 	//npl ==> [input: 3, hidden: 5,5,5, out: 1], doit etre donnée a chaque fois
 	//layer_number = 5, doit etre donnée a chaque fois
 	//L = layer number - 1, créer a chaque fois
 	//deltas peut etre déclaré et construit dans la fonction train
 	//x peut etre construit dans train et passé en paramettre à predict
 	//w est toujours return a unity afin de pouvoir le re utiliser
-	
+
 	__declspec(dllexport) test* create_test(int a, int b)
 	{
 		auto w = new test;
@@ -60,17 +61,17 @@ struct MLP
 		w->b = b;
 
 		w->w.emplace_back(33);
-	
+
 		return w;
 	}
-	
+
 	__declspec(dllexport) double* create_linear_model(int input_counts)
 	{
 		//On crée un tableau de input + 1 pour inclure le biais
 		auto weights = new double[input_counts + 1];
 
 		//Initialise le model avec des poids random selon le nombre d'input
-		for(auto i = 0; i < input_counts + 1; ++i)
+		for (auto i = 0; i < input_counts + 1; ++i)
 		{
 			weights[i] = rand() / static_cast<double>(RAND_MAX) * 2.0 - 1.0;
 		}
@@ -82,7 +83,7 @@ struct MLP
 	{
 		// todo
 
-		return new double[3] {1.0, 1.0, -1.0};
+		return new double[3]{ 1.0, 1.0, -1.0 };
 	}
 
 	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, bool is_classification)
@@ -92,39 +93,39 @@ struct MLP
 		//model contient les poids
 		int d[2];
 		int L = 2;
-		
-		for(int l = 1; l < L + 1; ++l)
+
+		for (int l = 1; l < L + 1; ++l)
 		{
-			for(int j = 1; j < d[l] + 1; ++j)
+			for (int j = 1; j < d[l] + 1; ++j)
 			{
 				double sum = 0.0;
 
-				for(int i = 0; i < d[l - 1] + 1; ++i)
+				for (int i = 0; i < d[l - 1] + 1; ++i)
 				{
 					tanh(sum);
 				}
 			}
 		}
-		
+
 		return result;
 	}
-	
-	__declspec(dllexport) void train_linear_model_rosenblatt(double* model, double all_inputs[], int input_count, 
+
+	__declspec(dllexport) void train_linear_model_rosenblatt(double* model, double all_inputs[], int input_count,
 		int sample_couts, double all_expected_outputs[], int expected_output_count, int epochs, double learning_rate, bool is_classification)
 	{
 		// todo
 
 		return;
 	}
-	
-	__declspec(dllexport) void delete_linear_model (double* model)
+
+	__declspec(dllexport) void delete_linear_model(double* model)
 	{
 		delete[] model;
 	}
 
 
-	
-	
+
+
 	__declspec(dllexport) MLP* create_model(int npl[], int layer_counts)
 	{
 		auto mlp = new MLP;
@@ -133,7 +134,7 @@ struct MLP
 		mlp->L = layer_counts - 1;
 
 
-		mlp->d.reserve(mlp->L);
+		mlp->d.reserve(layer_counts);
 		for (int n = 0; n < layer_counts; ++n)
 			mlp->d.emplace_back(npl[n]);
 
@@ -144,7 +145,14 @@ struct MLP
 
 			std::vector< std::vector<double> > a;
 
-			if (l != 0)
+			if (l == 0)
+			{
+				std::vector<double> b;
+				b.emplace_back(1.0);
+				a.emplace_back(b);
+				b.clear();
+			}
+			else
 			{
 				a.reserve(npl[l - 1] + 2);
 
@@ -161,13 +169,6 @@ struct MLP
 					a.emplace_back(b);
 					b.clear();
 				}
-			}
-			else
-			{
-				std::vector<double> b;
-				b.emplace_back(1.0);
-				a.emplace_back(b);
-				b.clear();
 			}
 
 			mlp->w.push_back(a);
@@ -211,93 +212,106 @@ struct MLP
 		return mlp;
 	}
 
-	__declspec(dllexport) void forward_pass(MLP* model, double inputs[], bool isClassification) 
+	__declspec(dllexport) void forward_pass(MLP* model, double inputs[], bool isClassification)
 	{
-		for(int j = 0; j < model->d[0]; ++j)
+		for (int j = 0; j < model->d[0]; ++j)
 			model->x[0][j + 1] = inputs[j];
 
-		for(int l = 1; l < model->L + 1; ++l)
+		for (int l = 1; l < model->L + 1; ++l)
 		{
-			for(int j = 1; j < model->d[l] + 1; ++j)
+			for (int j = 1; j < model->d[l] + 1; ++j)
 			{
 				double sum = 0.0;
-				
-				for (int i = 0; i < model->d[l - 1] + 1; ++i) 
+
+				for (int i = 0; i < model->d[l - 1] + 1; ++i)
 					sum += model->x[l - 1][i] * model->w[l][i][j];
-				
+
 
 				auto th = tanh(sum);
-				if (l == model->L && !isClassification) 
+				if (l == model->L && !isClassification)
 					model->x[l][j] = sum;
-				else 
-					model->x[l][j] = tanh(sum);
+				else
+					model->x[l][j] = th;
 			}
 		}
 	}
 
-	__declspec(dllexport) void train(MLP* model, double allInputs[], double allExpectedOutputs[], 
+	__declspec(dllexport) void train(MLP* model, double allInputs[], double allExpectedOutputs[],
 		int sampleCount, int epochs, double alpha, bool isClassification)
 	{
 		const int inputsSize = model->d[0];
 		const int outputsSize = model->d[model->L];
 
-		for (int it = 0; it < epochs; ++it) 
+		for (int it = 0; it < epochs; ++it)
 		{
-			int k = rand() % sampleCount - 1; //http://www.cplusplus.com/reference/cstdlib/rand/
-			
-			// Initialisation de x_k et y_k
-			// On récupère une slice des inputs et outputs en fonction de random
-			// Correspond à ces lignes dans le code python:
-			// x_k = all_inputs[inputs_size * k: inputs_size * (k + 1)]
-			// y_k = all_expected_outputs[outputs_size * k:outputs_size * (k + 1)]
-			
-			const int x_k_length = inputsSize * (k + 1) - (inputsSize * k);
-			//double* x_k = new double[x_k_length]; // PAS SUR
-			std::vector<double> x_k;
-			x_k.reserve(x_k_length);
-			for (int i = 0; i < x_k_length; ++i) 
-			{
-				x_k.emplace_back(allInputs[inputsSize * k + i]);
-			}
+			//srand(time(NULL));
+			const int max = sampleCount;
+			const int min = 0;
+			const int k = rand() % (max - min) + min; //rand() % sampleCount - 1; //http://www.cplusplus.com/reference/cstdlib/rand/
 
-			const int y_k_length = outputsSize * (k + 1) - (outputsSize * k);
-			//double* y_k = new double[y_k_length]; // PAS SUR
-			std::vector<double> y_k;
-			y_k.reserve(y_k_length);
-			for (int i = 0; i < y_k_length; i++)
+			//for (int k = 0; k < sampleCount; ++k)
 			{
-				y_k.emplace_back(allExpectedOutputs[outputsSize * k + i]);
-			}
+				// Initialisation de x_k et y_k
+				// On récupère une slice des inputs et outputs en fonction de random
+				// Correspond à ces lignes dans le code python:
+				// x_k = all_inputs[inputs_size * k: inputs_size * (k + 1)]
+				// y_k = all_expected_outputs[outputs_size * k:outputs_size * (k + 1)]
 
-			forward_pass(model, x_k.data(), isClassification);
+				const int x_k_length = inputsSize * (k + 1) - (inputsSize * k);
+				//double* x_k = new double[x_k_length]; // PAS SUR
+				std::vector<double> x_k;
+				x_k.reserve(x_k_length);
 
-			for(int j = 1; j < model->d[model->L] + 1; ++j)
-			{
-				model->deltas[model->L][j] = model->x[model->L][j] - y_k[j - 1];
-				if (isClassification) 
-					model->deltas[model->L][j] *= 1 - model->x[model->L][j] * model->x[model->L][j];//a * a plus performant que pow(a, 2)
-			}
-
-			for (int l = model->L; l > 1; l--) // correspond à reversed(range(2, self.L + 1))
-			{
-				for (int i = 0; i < model->d[l - 1] + 1; ++i) 
+				int start = inputsSize * k;
+				int end = inputsSize * (k + 1);
+				for (int i = start; i < end; ++i)
 				{
-					double sum = 0.0;
-					
-					for (int j = 1; j < model->d[l] + 1; ++j) 
-						sum += model->w[l][i][j] * model->deltas[l][j];
-					
-					model->deltas[l - 1][i] = (1.0 - model->x[l - 1][i] * model->x[l - 1][i]) * sum;
+					x_k.emplace_back(allInputs[i]);
 				}
+
+				const int y_k_length = outputsSize * (k + 1) - (outputsSize * k);
+				//double* y_k = new double[y_k_length]; // PAS SUR
+				std::vector<double> y_k;
+				y_k.reserve(y_k_length);
+
+				start = outputsSize * k;
+				end = outputsSize * (k + 1);
+				for (int i = start; i < end; ++i)
+				{
+					y_k.emplace_back(allExpectedOutputs[i]);
+				}
+
+ 				forward_pass(model, x_k.data(), isClassification);
+
+				for (int j = 1; j < model->d[model->L] + 1; ++j)
+				{
+					model->deltas[model->L][j] = model->x[model->L][j] - y_k[j - 1];
+					if (isClassification)
+						model->deltas[model->L][j] *= 1 - pow(model->x[model->L][j], 2);//a * a plus performant que pow(a, 2)
+				}
+
+				for (int l = model->L; l > 1; --l) // correspond à reversed(range(2, self.L + 1))
+				{
+					for (int i = 0; i < model->d[l - 1] + 1; ++i)
+					{
+						double sum = 0.0;
+
+						for (int j = 1; j < model->d[l] + 1; ++j)
+							sum += model->w[l][i][j] * model->deltas[l][j];
+
+						//(1 - self.x[l - 1][i] ** 2) * sum
+						model->deltas[l - 1][i] = (1.0 - pow(model->x[l - 1][i], 2)) * sum;
+					}
+				}
+
+				for (int l = 1; l < model->L + 1; ++l)
+					for (int i = 0; i < model->d[l - 1] + 1; ++i)
+						for (int j = 1; j < model->d[l] + 1; ++j)
+							model->w[l][i][j] -= alpha * model->x[l - 1][i] * model->deltas[l][j];
 			}
 
-			for(int l = 1; l < model->L + 1; ++l)
-				for (int i = 0; i < model->d[l - 1] + 1; ++i) 
-					for (int j = 1; j < model->d[l] + 1; ++j) 
-						model->w[l][i][j] -= alpha * model->x[l - 1][i] * model->deltas[l][j];
 
-			//delete[] x_k;
-			//delete[] y_k;
+
 		}
 	}
 
@@ -310,7 +324,7 @@ struct MLP
 
 		delete model;
 	}
-	
+
 
 
 	//__declspec(dllexport) Permet de spécifier, pour windows, que cette fonction va en dll
