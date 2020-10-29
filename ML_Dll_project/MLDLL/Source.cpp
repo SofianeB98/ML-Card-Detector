@@ -78,57 +78,6 @@ struct MLP
 		return weights;
 	}
 
-	__declspec(dllexport) MLP* create_model(int npl[], int layer_counts)
-	{
-		auto mlp = new MLP;
-
-		mlp->L = layer_counts - 1;
-
-		mlp->d.reserve(mlp->L);
-		for (int n = 0; n < layer_counts; ++n)
-			mlp->d.emplace_back(npl[n]);
-		
-		mlp->w.reserve(mlp->L + 1);
-		for (int l = 0; l < mlp->L - 1; ++l) // Ce serait pas l < mlp->L ?
-		{
-
-			std::vector< std::vector<double> > a;
-			
-			if (l != 0)
-			{
-				a.reserve(npl[l - 1] + 2);
-
-				for (int i = 0; i < npl[l - 1] + 1; ++i)
-				{
-					std::vector<double> b;
-					b.reserve(npl[l] + 2);
-					
-					for (int j = 0; j < npl[l] + 1; ++j)
-					{
-						b.emplace_back(rand() / static_cast<double>(RAND_MAX) * 2.0 - 1.0);
-					}
-
-					a.emplace_back(b);
-				}
-			}
-			else
-			{
-				std::vector<double> b;
-				b.emplace_back(1.0);
-				a.emplace_back(b);
-			}
-
-			mlp->w.push_back(a);
-
-
-		}
-
-		
-
-		
-		return mlp;
-	}
-	
 	__declspec(dllexport) double* predict_linear_model_multiclass(double* model, double inputs[], int input_count, int class_count, bool is_classification)
 	{
 		// todo
@@ -174,16 +123,94 @@ struct MLP
 	}
 
 
-	__declspec(dllexport) void delete_model(MLP* model)
-	{
-		model->d.clear();
-		model->deltas.clear();
-		model->w.clear();
-		model->x.clear();
-
-		delete model;
-	}
 	
+	
+	__declspec(dllexport) MLP* create_model(int npl[], int layer_counts)
+	{
+		auto mlp = new MLP;
+
+
+		mlp->L = layer_counts - 1;
+
+
+		mlp->d.reserve(mlp->L);
+		for (int n = 0; n < layer_counts; ++n)
+			mlp->d.emplace_back(npl[n]);
+
+
+		mlp->w.reserve(layer_counts + 1);
+		for (int l = 0; l < layer_counts; ++l)
+		{
+
+			std::vector< std::vector<double> > a;
+
+			if (l != 0)
+			{
+				a.reserve(npl[l - 1] + 2);
+
+				for (int i = 0; i < npl[l - 1] + 1; ++i)
+				{
+					std::vector<double> b;
+					b.reserve(npl[l] + 2);
+
+					for (int j = 0; j < npl[l] + 1; ++j)
+					{
+						b.emplace_back(rand() / static_cast<double>(RAND_MAX) * 2.0 - 1.0);
+					}
+
+					a.emplace_back(b);
+					b.clear();
+				}
+			}
+			else
+			{
+				std::vector<double> b;
+				b.emplace_back(1.0);
+				a.emplace_back(b);
+				b.clear();
+			}
+
+			mlp->w.push_back(a);
+			a.clear();
+		}
+
+
+		mlp->x.reserve(layer_counts + 1);
+		for (int l = 0; l < layer_counts; ++l)
+		{
+			std::vector<double> a;
+			a.reserve(npl[l] + 1 + 1);
+			for (int j = 0; j < npl[l] + 1; ++j)
+			{
+				if (j > 0)
+					a.emplace_back(0.0);
+				else
+					a.emplace_back(1.0);
+			}
+			mlp->x.emplace_back(a);
+			a.clear();
+		}
+
+
+		mlp->deltas.reserve(layer_counts + 1);
+		for (int l = 0; l < layer_counts; ++l)
+		{
+			std::vector<double> a;
+			a.reserve(npl[l] + 1 + 1);
+			for (int j = 0; j < npl[l] + 1; ++j)
+			{
+				if (j > 0)
+					a.emplace_back(0.0);
+				else
+					a.emplace_back(1.0);
+			}
+			mlp->deltas.emplace_back(a);
+			a.clear();
+		}
+
+		return mlp;
+	}
+
 	__declspec(dllexport) void forward_pass(MLP* model, double* inputs, bool isClassification) 
 	{
 		for(int j = 0; j < model->d[0]; j++)
@@ -212,7 +239,8 @@ struct MLP
 		}
 	}
 
-	__declspec(dllexport) void train(MLP* model, double* allInputs, double* allExpectedOutputs, int sampleCount, bool isClassification, int epochs, double alpha)
+	__declspec(dllexport) void train(MLP* model, double* allInputs, double* allExpectedOutputs, 
+		int sampleCount, bool isClassification, int epochs, double alpha)
 	{
 		int inputsSize = model->d[0];
 		int outputsSize = model->d[model->L];
@@ -277,6 +305,18 @@ struct MLP
 			delete[] y_k;
 		}
 	}
+
+	__declspec(dllexport) void delete_model(MLP* model)
+	{
+		model->d.clear();
+		model->deltas.clear();
+		model->w.clear();
+		model->x.clear();
+
+		delete model;
+	}
+	
+
 
 	//__declspec(dllexport) Permet de spécifier, pour windows, que cette fonction va en dll
 	//l'interface d'une fonction doit respecter les code C
