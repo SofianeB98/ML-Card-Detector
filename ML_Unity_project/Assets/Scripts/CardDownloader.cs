@@ -9,14 +9,18 @@ public class CardDownloader : MonoBehaviour
 {
     [Header("Download Parameter")] 
     public bool canDownload = true;
-    public int cardCount = 4981;
+    public int cardCount = 295;
     public string outPath = "";
     public string folderName = "Magic";
 
-    private string url = "http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid={0}&type=card";
+    public Dictionary<string, int> pokemonDownloadDic = new Dictionary<string, int>();
+
+    private string url = "https://images.pokemontcg.io/{1}/{0}.png"; //permet de dl les carte pokemon";
+    //private string url = "http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid={0}&type=card";
     
     private string finalPath = "";
     private string cardName = "";
+    private int startId = 0;
     
     [Header("Resize Parameter")]
     public Vector2Int resizeTo = new Vector2Int(256, 256);
@@ -25,6 +29,12 @@ public class CardDownloader : MonoBehaviour
     
     private void Start()
     {
+        pokemonDownloadDic.Add("base1", 100);
+        pokemonDownloadDic.Add("base4", 100);
+        pokemonDownloadDic.Add("ex4", 97);
+        pokemonDownloadDic.Add("dp6", 100);
+        pokemonDownloadDic.Add("xy1", 100);
+        
         if (string.IsNullOrEmpty(outPath))
             outPath = Application.persistentDataPath;
 
@@ -38,36 +48,73 @@ public class CardDownloader : MonoBehaviour
         {
             Directory.CreateDirectory(finalPath);
         }
+        else
+        {
+            if (Directory.GetFiles(finalPath).Length >= cardCount)
+                return;
+            else
+                startId = cardCount - (cardCount - Directory.GetFiles(finalPath).Length);
+        }
         
         if (canDownload)
-            StartCoroutine(CardDownload(finalPath));
+            StartCoroutine(CardDownload(true));
     }
 
-    private IEnumerator CardDownload(string path)
+    private IEnumerator CardDownload(bool useDic = false)
     {
         Debug.LogWarning("On va telecharger les images dans : " + finalPath);
-
-        for (int i = 0; i < cardCount; i++)
+        if (!useDic)
         {
-            string cName = cardName + i.ToString("0000");
-            string realUrl = string.Format(url, i);
-            using (UnityWebRequest request = UnityWebRequest.Get(realUrl))
+            for (int i = startId; i < cardCount; i++)
             {
-                Debug.LogWarning("Lancement de la request");
-                // Send the request and wait for a response
-                yield return request.SendWebRequest();
-                string pathReal = Path.Combine(finalPath, cName);
-                
-                
-                
-                if (!File.Exists(pathReal))
+                string cName = cardName + i.ToString("0000");
+                string realUrl = string.Format(url, i);
+                using (UnityWebRequest request = UnityWebRequest.Get(realUrl))
                 {
-                    var resizedImg = ResizePicture(request.downloadHandler.data);
-                    File.WriteAllBytes(pathReal + ".jpg", resizedImg);
-                    Debug.Log("Fichier telechargé au nom de : " + cName);
+                    //Debug.LogWarning("Lancement de la request");
+                    // Send the request and wait for a response
+                    yield return request.SendWebRequest();
+                    string pathReal = Path.Combine(finalPath, cName);
+                
+                    if (!File.Exists(pathReal))
+                    {
+                        var resizedImg = ResizePicture(request.downloadHandler.data);
+                        File.WriteAllBytes(pathReal + ".jpg", resizedImg);
+                        //Debug.Log("Fichier telechargé au nom de : " + cName);
+                    }
                 }
             }
         }
+        else
+        {
+            Debug.LogWarning("use dic version");
+            foreach (var key in pokemonDownloadDic.Keys)
+            {
+                var v = pokemonDownloadDic[key];
+                
+                for (int i = startId; i < v; i++)
+                {
+                    string cName = cardName + i.ToString("0000");
+                    string realUrl = string.Format(url, i, key);
+                    using (UnityWebRequest request = UnityWebRequest.Get(realUrl))
+                    {
+                        //Debug.LogWarning("Lancement de la request");
+                        // Send the request and wait for a response
+                        yield return request.SendWebRequest();
+                        string pathReal = Path.Combine(finalPath, cName);
+                
+                        if (!File.Exists(pathReal))
+                        {
+                            var resizedImg = ResizePicture(request.downloadHandler.data);
+                            File.WriteAllBytes(pathReal + ".jpg", resizedImg);
+                            //Debug.Log("Fichier telechargé au nom de : " + cName);
+                        }
+                    }
+                }
+            }
+            
+        }
+        
         
         yield break;
     }
