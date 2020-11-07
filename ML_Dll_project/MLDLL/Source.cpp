@@ -34,10 +34,10 @@ extern "C"
 	{
 		double sum = 0.0;
 
-		for(int n = 0; n < sample_count; ++n)
+		for(int i = 0; i < input_count; ++i)
 		{
 			//Somme pondéré des poinds * inputs
-			for(int i = 0; i < input_count; ++i)
+			for(int n = 0; n < sample_count; ++n)
 			{
 				sum += model[i] * inputs[n];
 			}
@@ -61,9 +61,15 @@ extern "C"
 	__declspec(dllexport) void train_linear_model_rosenblatt(double* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count, int epochs, double learning_rate)
 	{
+		//input count = nombre d'input/output
+		//
+		//sample count = taille d'un input
+		//
+		//expected_output_count = taille d'un output
+		
 		for(int it = 0; it < epochs; ++it)
 		{
-			const int max = sample_counts;
+			const int max = input_count;
 			const int min = 0;
 			const int k = rand() % (max - min) + min;
 
@@ -91,9 +97,9 @@ extern "C"
 
 			auto g_Xk = predict_linear_model(model, x_k.data(), input_count, sample_counts, true);
 
-			for(int n = 0; n < sample_counts; ++n)
-				for(int l = 0; l < expected_output_count; ++l)
-					for(int i = 0; i < input_count; ++i)
+			for(int i = 0; i < input_count; ++i)
+				for(int n = 0; n < sample_counts; ++n)
+					for(int l = 0; l < expected_output_count; ++l)
 						model[i] = model[i] + learning_rate * (y_k[l] - g_Xk) * x_k[n];
 				
 		}

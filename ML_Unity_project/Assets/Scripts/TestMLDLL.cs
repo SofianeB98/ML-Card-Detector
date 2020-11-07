@@ -6,40 +6,33 @@ public class TestMLDLL : MonoBehaviour
 {
     private void Start()
     {
-        Debug.Log( MLDLLWrapper.MyAdd(2, 3) + " the result of my C code dll");
+        Debug.LogWarning("Creation du model");
+        var model = MLDLLWrapper.CreateLinearModel(3);
 
-        var model = MLDLLWrapper.CreateModel(new int[] {2, 3, 1}, 3);
+        var inputs = new double[]
+        {
+            1, 1,
+            2, 3,
+            3, 3
+        };
         
-        MLDLLWrapper.Train(model, new double[] {
-            0.0, 0.0,
-            1.0, 0.0,
-            0.0, 1.0,
-            1.0, 1.0
-        }, new double[] {
-            -1.0, 1.0, 1.0, -1.0
-        }, 4, 10000, 0.1, true);
+        Debug.LogWarning("Lancement du training !");
+        MLDLLWrapper.TrainLinearModelRosenblatt(model, inputs, 3, 2, new double[]
+        {
+            1, -1, -1
+        }, 1, 1000, 0.1);
+        Debug.LogWarning("Training compléter !");
 
-        var result = MLDLLWrapper.Predict(model, new double[]
+        for (int i = 0; i < 6; i += 2)
         {
-            1.0, 1.0
-        }, true);
+            Debug.LogWarning("Echantillon : " + inputs[i] + " :: " + inputs[i+1]);
+            
+            var fwrd = MLDLLWrapper.PredictLinearModel(model, new double[] {inputs[i], inputs[i+1]}, 1, 2, true);
+            Debug.LogWarning("\nPrediction = " + fwrd);
+        }
         
-        double[] r = new double[2];
-        System.Runtime.InteropServices.Marshal.Copy(result, r, 0, 2);
-        Debug.Log(r[1]);
-        MLDLLWrapper.DeleteDoubleArrayPtr(result);
-        
-        result = MLDLLWrapper.Predict(model, new double[]
-        {
-            0.0, 1.0
-        }, true);
-        
-        r = new double[2];
-        System.Runtime.InteropServices.Marshal.Copy(result, r, 0, 2);
-        Debug.Log(r[1]);
-        MLDLLWrapper.DeleteDoubleArrayPtr(result);
-        
-        MLDLLWrapper.DeleteModel(model);
+        MLDLLWrapper.DeleteLinearModel(model);
+        Debug.LogWarning("Modele detruit ! !");
     }
 
 }
