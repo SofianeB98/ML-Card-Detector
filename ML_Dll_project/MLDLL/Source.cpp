@@ -30,24 +30,44 @@ extern "C"
 		return new double[3]{ 1.0, 1.0, -1.0 };
 	}
 
-	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, int sample_count, bool is_classification)
+	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, bool is_classification)
 	{
 		double sum = 0.0;
 
-		for(int i = 0; i < input_count; ++i)
+		/*
+		 * std::vector<double> x_k;
+		x_k.reserve(input_count + 1);
+
+		//Puis on remplit notre selection
+		for (int i = 0; i < input_count + 1; ++i)
 		{
-			//Somme pondéré des poinds * inputs
-			for(int n = 0; n < sample_count; ++n)
-			{
-				sum += model[i] * inputs[n];
-			}
+			if (i == 0)
+				x_k.emplace_back(1.0);
+			else
+				x_k.emplace_back(inputs[i - 1]);
+		}
+		
+		for (int i = 0; i < input_count + 1; ++i)
+		{
+			sum += model[i] * x_k[i];
+
 		}
 
+		x_k.clear();
+		 */
+		
+		for (int i = 0; i < input_count + 1; ++i)
+		{
+			sum += model[i] * inputs[i];
+
+		}
+
+		//Si on est en classif, on retourne Sign(sum)
 		if (is_classification)
 			return sum > 0.0 ? 1.0
-							: sum < 0.0 ? -1.0
-							: 0.0;
-		else
+			: sum < 0.0 ? -1.0
+			: 0.0;
+		else //sinon on retourne la sum
 			return sum;
 	}
 
@@ -57,33 +77,46 @@ extern "C"
 	{
 
 	}
-	
+
+	/// <summary>
+	/// Train linear model with Rosenblatt method. This is for classifier.
+	/// </summary>
+	/// <param name="model">The model to train</param>
+	/// <param name="all_inputs">All inputs we want to train</param>
+	/// <param name="input_count">The size of an input, ex : input = Vector2 so input count = 2 </param>
+	/// <param name="sample_counts">The number of input/output</param>
+	/// <param name="all_expected_outputs">All output we want to have</param>
+	/// <param name="expected_output_count">the size of an output</param>
+	/// <param name="epochs"></param>
+	/// <param name="learning_rate"></param>
 	__declspec(dllexport) void train_linear_model_rosenblatt(double* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count, int epochs, double learning_rate)
 	{
-		//input count = nombre d'input/output
-		//
-		//sample count = taille d'un input
-		//
-		//expected_output_count = taille d'un output
-		
-		for(int it = 0; it < epochs; ++it)
+		for (int it = 0; it < epochs; ++it)
 		{
-			const int max = input_count;
+#pragma region Random Choice
+			//On tire au sort entre 0 et sample count
+			const int max = sample_counts;
 			const int min = 0;
 			const int k = rand() % (max - min) + min;
 
-			const int x_k_length = sample_counts * (k + 1) - (sample_counts * k);
+			//Ensuite on prend la lenght de ce tirage
+			const int x_k_length = input_count * (k + 1) - (input_count * k);
 			std::vector<double> x_k;
-			x_k.reserve(x_k_length);
+			x_k.reserve(x_k_length + 1);
 
-			int start = sample_counts * k;
-			int end = sample_counts * (k + 1);
-			for (int i = start; i < end; ++i)
+			//Puis on remplit notre selection
+			int start = input_count * k;
+			int end = input_count * (k + 1);
+			for (int i = start; i < end + 1; ++i)
 			{
-				x_k.emplace_back(all_inputs[i]);
+				if(i == start)
+					x_k.emplace_back(1.0);
+				else
+					x_k.emplace_back(all_inputs[i - 1]);
 			}
 
+			//On fait de même pour les outputs
 			const int y_k_length = expected_output_count * (k + 1) - (expected_output_count * k);
 			std::vector<double> y_k;
 			y_k.reserve(y_k_length);
@@ -94,18 +127,23 @@ extern "C"
 			{
 				y_k.emplace_back(all_expected_outputs[i]);
 			}
+#pragma endregion
 
-			auto g_Xk = predict_linear_model(model, x_k.data(), input_count, sample_counts, true);
+			//On réalise la prediction de l'echantillon en classification car nous somme en resenblatt
+			const auto g_Xk = predict_linear_model(model, x_k.data(), input_count, true);
 
-			for(int i = 0; i < input_count; ++i)
-				for(int n = 0; n < sample_counts; ++n)
-					for(int l = 0; l < expected_output_count; ++l)
-						model[i] = model[i] + learning_rate * (y_k[l] - g_Xk) * x_k[n];
-				
+			//Enfin on met a jout les poids
+			for (int i = 0; i < input_count + 1; ++i)
+				for (int l = 0; l < expected_output_count; ++l)
+					model[i] = model[i] + learning_rate * (y_k[l] - g_Xk) * x_k[i];
+
+
+			x_k.clear();
+			y_k.clear();
 		}
 	}
 
-	
+
 	__declspec(dllexport) void delete_linear_model(double* model)
 	{
 		delete[] model;
@@ -279,67 +317,65 @@ extern "C"
 			const int min = 0;
 			const int k = rand() % (max - min) + min; //rand() % sampleCount - 1; //http://www.cplusplus.com/reference/cstdlib/rand/
 
-			//for (int k = 0; k < sampleCount; ++k)
+
+			// Initialisation de x_k et y_k
+			// On récupère une slice des inputs et outputs en fonction de random
+			// Correspond à ces lignes dans le code python:
+			// x_k = all_inputs[inputs_size * k: inputs_size * (k + 1)]
+			// y_k = all_expected_outputs[outputs_size * k:outputs_size * (k + 1)]
+
+			const int x_k_length = inputsSize * (k + 1) - (inputsSize * k);
+			std::vector<double> x_k;
+			x_k.reserve(x_k_length);
+
+			int start = inputsSize * k;
+			int end = inputsSize * (k + 1);
+			for (int i = start; i < end; ++i)
 			{
-				// Initialisation de x_k et y_k
-				// On récupère une slice des inputs et outputs en fonction de random
-				// Correspond à ces lignes dans le code python:
-				// x_k = all_inputs[inputs_size * k: inputs_size * (k + 1)]
-				// y_k = all_expected_outputs[outputs_size * k:outputs_size * (k + 1)]
-
-				const int x_k_length = inputsSize * (k + 1) - (inputsSize * k);
-				std::vector<double> x_k;
-				x_k.reserve(x_k_length);
-
-				int start = inputsSize * k;
-				int end = inputsSize * (k + 1);
-				for (int i = start; i < end; ++i)
-				{
-					x_k.emplace_back(allInputs[i]);
-				}
-
-				const int y_k_length = outputsSize * (k + 1) - (outputsSize * k);
-				std::vector<double> y_k;
-				y_k.reserve(y_k_length);
-
-				start = outputsSize * k;
-				end = outputsSize * (k + 1);
-				for (int i = start; i < end; ++i)
-				{
-					y_k.emplace_back(allExpectedOutputs[i]);
-				}
-
-				forward_pass(model, x_k.data(), isClassification);
-
-				for (int j = 1; j < model->d[model->L] + 1; ++j)
-				{
-					model->deltas[model->L][j] = model->x[model->L][j] - y_k[j - 1];
-					if (isClassification)
-						model->deltas[model->L][j] *= 1 - pow(model->x[model->L][j], 2);//a * a plus performant que pow(a, 2)
-				}
-
-				for (int l = model->L; l > 1; --l) // correspond à reversed(range(2, self.L + 1))
-				{
-					for (int i = 0; i < model->d[l - 1] + 1; ++i)
-					{
-						double sum = 0.0;
-
-						for (int j = 1; j < model->d[l] + 1; ++j)
-							sum += model->w[l][i][j] * model->deltas[l][j];
-
-						//(1 - self.x[l - 1][i] ** 2) * sum
-						model->deltas[l - 1][i] = (1.0 - pow(model->x[l - 1][i], 2)) * sum;
-					}
-				}
-
-				for (int l = 1; l < model->L + 1; ++l)
-					for (int i = 0; i < model->d[l - 1] + 1; ++i)
-						for (int j = 1; j < model->d[l] + 1; ++j)
-							model->w[l][i][j] -= alpha * model->x[l - 1][i] * model->deltas[l][j];
+				x_k.emplace_back(allInputs[i]);
 			}
 
+			const int y_k_length = outputsSize * (k + 1) - (outputsSize * k);
+			std::vector<double> y_k;
+			y_k.reserve(y_k_length);
 
+			start = outputsSize * k;
+			end = outputsSize * (k + 1);
+			for (int i = start; i < end; ++i)
+			{
+				y_k.emplace_back(allExpectedOutputs[i]);
+			}
 
+			forward_pass(model, x_k.data(), isClassification);
+
+			for (int j = 1; j < model->d[model->L] + 1; ++j)
+			{
+				model->deltas[model->L][j] = model->x[model->L][j] - y_k[j - 1];
+				if (isClassification)
+					model->deltas[model->L][j] *= 1 - pow(model->x[model->L][j], 2);//a * a plus performant que pow(a, 2)
+			}
+
+			for (int l = model->L; l > 1; --l) // correspond à reversed(range(2, self.L + 1))
+			{
+				for (int i = 0; i < model->d[l - 1] + 1; ++i)
+				{
+					double sum = 0.0;
+
+					for (int j = 1; j < model->d[l] + 1; ++j)
+						sum += model->w[l][i][j] * model->deltas[l][j];
+
+					//(1 - self.x[l - 1][i] ** 2) * sum
+					model->deltas[l - 1][i] = (1.0 - pow(model->x[l - 1][i], 2)) * sum;
+				}
+			}
+
+			for (int l = 1; l < model->L + 1; ++l)
+				for (int i = 0; i < model->d[l - 1] + 1; ++i)
+					for (int j = 1; j < model->d[l] + 1; ++j)
+						model->w[l][i][j] -= alpha * model->x[l - 1][i] * model->deltas[l][j];
+
+			x_k.clear();
+			y_k.clear();
 		}
 	}
 
