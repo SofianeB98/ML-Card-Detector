@@ -5,6 +5,8 @@
 //permet d'attacher la source.cpp à unity et de voir step by step
 //ce qu'il se passe
 
+#include <Eigen>
+
 extern "C"
 {
 #pragma region Linear Model
@@ -33,7 +35,8 @@ extern "C"
 	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, bool is_classification)
 	{
 		double sum = 0.0;
-
+		Eigen::Matrix<double, 4, 4> test;
+		
 		/*
 		 * std::vector<double> x_k;
 		x_k.reserve(input_count + 1);
