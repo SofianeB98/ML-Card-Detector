@@ -39,12 +39,16 @@ extern "C"{
 		int sampleCount, int epochs, double alpha, bool isClassification);
 	__declspec(dllexport) void forward_pass(MLP* model, double inputs[], bool isClassification);
 	__declspec(dllexport) void delete_model(MLP* model);
+	__declspec(dllexport) void train_linear_model_regression(double* model, double all_inputs[], int input_count,
+		int sample_counts, double all_expected_outputs[], int expected_output_count);
+	__declspec(dllexport) double* create_linear_model_regression(int input_counts);
+	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, bool is_classification);
 }
 
 int main()
 {
     std::cout << "Hello World!  " << my_add(42, 51) << std::endl;
-	int npl[] = {2, 3, 1};
+	/*int npl[] = {2, 3, 1};
 	MLP* model = create_model(npl, 3);
 
 	double X[] = {
@@ -94,7 +98,26 @@ int main()
 			std::cout << model->x[model->L][i] << std::endl;
 	}
 
-	delete_model(model);
+	delete_model(model);*/
 
+	double X[] = {
+		1.0, 2.0, 3.0
+	};
+
+	double Xk[] = {
+		3.0
+	};
+	
+	double Y[] = {
+		2.0, 3.0, 2.5
+	};
+	
+	auto model = create_linear_model_regression(1);
+	train_linear_model_regression(model, X, 1, 3, Y, 1);
+	auto p = predict_linear_model(model, Xk, 1, false);
+	std::cout << p << " prediction" << std::endl;
+	//delete[] model;
+	
+	
 	return 0;
 }

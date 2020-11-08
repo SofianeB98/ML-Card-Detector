@@ -6,6 +6,7 @@
 //ce qu'il se passe
 
 #include <Eigen>
+#include <iostream>
 
 extern "C"
 {
@@ -25,6 +26,20 @@ extern "C"
 		return weights;
 	}
 
+	__declspec(dllexport) double* create_linear_model_regression(int input_counts)
+	{
+		//On crée un tableau de input + 1 pour inclure le biais
+		auto weights = new double[input_counts];
+
+		//Initialise le model avec des poids random selon le nombre d'input
+		for (auto i = 0; i < input_counts; ++i)
+		{
+			weights[i] = rand() / static_cast<double>(RAND_MAX) * 2.0 - 1.0;
+		}
+
+		return weights;
+	}
+	
 	__declspec(dllexport) double* predict_linear_model_multiclass(double* model, double inputs[], int input_count, int class_count, bool is_classification)
 	{
 		// todo
@@ -35,7 +50,6 @@ extern "C"
 	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, bool is_classification)
 	{
 		double sum = 0.0;
-		Eigen::Matrix<double, 4, 4> test;
 		
 		/*
 		 * std::vector<double> x_k;
@@ -58,8 +72,9 @@ extern "C"
 
 		x_k.clear();
 		 */
+
 		
-		for (int i = 0; i < input_count + 1; ++i)
+		for (int i = 0; i < (is_classification ? input_count + 1 : input_count); ++i)
 		{
 			sum += model[i] * inputs[i];
 
@@ -78,7 +93,59 @@ extern "C"
 	__declspec(dllexport) void train_linear_model_regression(double* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count)
 	{
+		//Pas besoins d'utiliser le model car on va directement calculer les poids optimaux
+		//On crée les matrice des inputs et outputs
+		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(sample_counts, input_count);
+		Eigen::MatrixXd all_output_m = Eigen::MatrixXd(sample_counts, expected_output_count);
 
+		Eigen::MatrixXd w = Eigen::MatrixXd(1, input_count);
+		
+		//on remplit les matrices
+		for(int i = 0; i < sample_counts; ++i)
+		{
+			for(int j = 0; j < input_count; ++j)
+			{
+				all_inputs_m(i, j) = all_inputs[i * input_count + j];
+			}
+		}
+		std::cout << "INPUTS : \n" << all_inputs_m << std::endl;
+		for (int i = 0; i < sample_counts; ++i)
+		{
+			for (int j = 0; j < expected_output_count; ++j)
+			{
+				all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
+			}
+		}
+		std::cout << "OUTPUTS : \n" << all_output_m << std::endl;
+
+		Eigen::MatrixXd all_inputs_m_transposed = all_inputs_m;
+		all_inputs_m_transposed.transposeInPlace();
+		
+		//on effectue le calcule matriciel
+		//
+		//	   |* *|
+		//_____|___|* * *
+		//* * *|* *|
+		//* * *|* *|
+		//
+		//
+		w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
+
+		std::cout << "weight = \n" << w << std::endl;
+		
+		//On assigne les data au model
+		for(int i = 0; i < w.size(); ++i)
+		{
+			model[i] = w(i);
+			std::cout << model[i] << " model i" << std::endl;
+		}
+		
+		/*Eigen::Matrix<double, 3, 2> in;
+		Eigen::Matrix<double, 3, 2> inT = in;
+		inT.transposeInPlace();
+		Eigen::Matrix<double, 3, 1> out;
+		Eigen::Matrix<double, 1, 2> w = ((inT * in).inverse() * inT * out);
+		double* data = in.data();*/
 	}
 
 	/// <summary>

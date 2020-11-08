@@ -511,7 +511,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bfba5c3049d48b4b222fe118a1ce2b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  epochs: 100
+  epochs: 500
   alpha: 0.01
 --- !u!1 &897545456
 GameObject:
