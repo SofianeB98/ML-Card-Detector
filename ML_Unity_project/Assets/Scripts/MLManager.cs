@@ -5,7 +5,16 @@ using UnityEngine;
 
 public class MLManager : MonoBehaviour
 {
-    [Header("ML Parameter")] public int[] npl = new int[0];
+    private static MLManager instance;
+
+    public static MLManager Instance
+    {
+        get { return instance; }
+    }
+    
+    [Header("ML Parameter")] 
+    public bool createModelOnStart = true;
+    public int[] npl = new int[0];
     public int sampleCounts = 4;
     public int epochs = 10000;
     public double alpha = 0.01;
@@ -14,15 +23,28 @@ public class MLManager : MonoBehaviour
     private int output_size = 0;
     private System.IntPtr model;
 
-    [Header("Dataset")] public Transform[] dataset = new Transform[0];
+    [Header("Dataset")] 
+    public Transform[] dataset = new Transform[0];
     private double[] inputs_dataset = new double[0];
     private double[] outputs = new double[0];
 
-    [Header("Inputs population")] public Transform[] inputs = new Transform[0];
+    [Header("Inputs population")] 
+    public Transform[] inputs = new Transform[0];
     //private double[] inputsTest = new double[0];
+
+    private void Awake()
+    {
+        if (instance == null)
+            instance = this;
+        else if(instance != this)
+            Destroy(this);
+    }
 
     private void Start()
     {
+        if (!createModelOnStart)
+            return;
+        
         model = MLDLLWrapper.CreateModel(npl, npl.Length);
         Debug.Log("Modèle créé \n");
 
@@ -52,10 +74,42 @@ public class MLManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (model.Equals(IntPtr.Zero))
+            return;
+        
         MLDLLWrapper.DeleteModel(model);
         Debug.Log("Modèle détruit\n");
     }
 
+    public void CreateModel()
+    {
+        model = MLDLLWrapper.CreateModel(npl, npl.Length);
+        Debug.Log("Modèle créé \n");
+
+        input_size = npl[0];
+        output_size = npl[npl.Length - 1];
+
+        inputs_dataset = new double[dataset.Length * input_size];
+        outputs = new double[dataset.Length * output_size];
+
+        int idx = 0;
+        int idx_out = 0;
+        foreach (var tr in dataset)
+        {
+            Vector3 p = tr.position;
+            inputs_dataset[idx] = p.x;
+            idx++;
+            inputs_dataset[idx] = p.z;
+            idx++;
+
+            outputs[idx_out] = p.y;
+            idx_out++;
+        }
+
+
+        Debug.Log("Tableau d'input initialisé depuis les inputs bruts\n");
+    }
+    
     public void TrainModel()
     {
         Debug.Log("On entraîne le modèle\n...");
