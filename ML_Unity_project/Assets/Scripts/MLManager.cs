@@ -45,6 +45,13 @@ public class MLManager : MonoBehaviour
         if (!createModelOnStart)
             return;
         
+        if (!model.Equals(IntPtr.Zero))
+        {
+            Debug.LogError("You trying to created an other model, we delete the old model before");
+            MLDLLWrapper.DeleteModel(model);
+            Debug.Log("Modèle détruit\n");
+        }
+        
         model = MLDLLWrapper.CreateModel(npl, npl.Length);
         Debug.Log("Modèle créé \n");
 
@@ -83,6 +90,13 @@ public class MLManager : MonoBehaviour
 
     public void CreateModel()
     {
+        if (!model.Equals(IntPtr.Zero))
+        {
+            Debug.LogError("You trying to created an other model, we delete the old model before");
+            MLDLLWrapper.DeleteModel(model);
+            Debug.Log("Modèle détruit\n");
+        }
+        
         model = MLDLLWrapper.CreateModel(npl, npl.Length);
         Debug.Log("Modèle créé \n");
 
@@ -112,6 +126,12 @@ public class MLManager : MonoBehaviour
     
     public void TrainModel()
     {
+        if (model.Equals(IntPtr.Zero))
+        {
+            Debug.LogError("You trying to train your model, but it's not created");
+            return;
+        }
+        
         Debug.Log("On entraîne le modèle\n...");
         MLDLLWrapper.Train(model, inputs_dataset, outputs, sampleCounts, epochs, alpha, isClassification);
         Debug.Log("Modèle entrainé \n");
@@ -119,6 +139,12 @@ public class MLManager : MonoBehaviour
 
     public void Predict()
     {
+        if (model.Equals(IntPtr.Zero))
+        {
+            Debug.LogError("You trying to predict these inputs, but your model is not created");
+            return;
+        }
+        
         Debug.Log("Prediction du dataset !\n");
         int idx = 0;
         // for (int i = 0; i < dataset.Length; i++)
