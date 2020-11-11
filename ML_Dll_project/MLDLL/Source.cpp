@@ -40,12 +40,6 @@ extern "C"
 		return weights;
 	}
 	
-	__declspec(dllexport) double* predict_linear_model_multiclass(double* model, double inputs[], int input_count, int class_count, bool is_classification)
-	{
-		// todo
-
-		return new double[3]{ 1.0, 1.0, -1.0 };
-	}
 
 	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, bool is_classification)
 	{
@@ -89,6 +83,19 @@ extern "C"
 			return sum;
 	}
 
+	__declspec(dllexport) double* predict_linear_model_multiclass(double* model[], double inputs[], int input_count, int class_count, bool is_classification)
+	{
+		// todo
+		double* result = new double[class_count];
+		double sum = 0.0;
+		
+		for (int i = 0; i < class_count; ++i)
+		{
+			result[i] = predict_linear_model(model[i], inputs, input_count, is_classification);
+		}
+		//
+		return result;
+	}
 
 	__declspec(dllexport) void train_linear_model_regression(double* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count)
@@ -122,13 +129,7 @@ extern "C"
 		all_inputs_m_transposed.transposeInPlace();
 		
 		//on effectue le calcule matriciel
-		//
-		//	   |* *|
-		//_____|___|* * *
-		//* * *|* *|
-		//* * *|* *|
-		//
-		//
+		//TODO : pour le cas du tricky la pseudo inverse merde
 		w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
 
 		std::cout << "weight = \n" << w << std::endl;
@@ -139,13 +140,6 @@ extern "C"
 			model[i] = w(i);
 			std::cout << model[i] << " model i" << std::endl;
 		}
-		
-		/*Eigen::Matrix<double, 3, 2> in;
-		Eigen::Matrix<double, 3, 2> inT = in;
-		inT.transposeInPlace();
-		Eigen::Matrix<double, 3, 1> out;
-		Eigen::Matrix<double, 1, 2> w = ((inT * in).inverse() * inT * out);
-		double* data = in.data();*/
 	}
 
 	/// <summary>

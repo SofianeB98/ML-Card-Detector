@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MultiCrossGenerator : MonoBehaviour
@@ -21,7 +22,7 @@ public class MultiCrossGenerator : MonoBehaviour
     void Start()
     {
         MLManager.Instance.dataset = new Transform[totalSphere];
-        LinearMLManager.Instance.dataset = new Transform[totalSphere];
+        LinearMulticlassMLManager.Instance.dataset = new Transform[totalSphere];
         for (int i = 0; i < totalSphere; i++)
         {
             Vector3 p = new Vector3(Random.Range(-1.0f, 1.01f), 0, Random.Range(-1.0f, 1.01f));
@@ -33,7 +34,7 @@ public class MultiCrossGenerator : MonoBehaviour
                     Quaternion.identity, datasetParent).transform;
                 tr.localScale = Vector3.one * sphereScale;
                 MLManager.Instance.dataset[i] = tr;
-                LinearMLManager.Instance.dataset[i] = tr;
+                LinearMulticlassMLManager.Instance.dataset[i] = tr;
             }
             else if (Mathf.Abs(p.x % 0.5f) > 0.25f && Mathf.Abs(p.z % 0.5f) <= 0.25f)
             {
@@ -42,7 +43,7 @@ public class MultiCrossGenerator : MonoBehaviour
                     Quaternion.identity, datasetParent).transform;
                 tr.localScale = Vector3.one * sphereScale;
                 MLManager.Instance.dataset[i] = tr;
-                LinearMLManager.Instance.dataset[i] = tr;
+                LinearMulticlassMLManager.Instance.dataset[i] = tr;
             }
             else
             {
@@ -51,16 +52,19 @@ public class MultiCrossGenerator : MonoBehaviour
                     Quaternion.identity, datasetParent).transform;
                 tr.localScale = Vector3.one * sphereScale;
                 MLManager.Instance.dataset[i] = tr;
-                LinearMLManager.Instance.dataset[i] = tr;
+                LinearMulticlassMLManager.Instance.dataset[i] = tr;
             }
         }
 
+        MLManager.Instance.dataset = MLManager.Instance.dataset.OrderBy(t => t.position.y).ToArray();
+        LinearMulticlassMLManager.Instance.dataset = LinearMulticlassMLManager.Instance.dataset.OrderBy(t => t.position.y).ToArray();
+        
         MLManager.Instance.sampleCounts = totalSphere;
-        LinearMLManager.Instance.sampleCounts = totalSphere;
+        LinearMulticlassMLManager.Instance.sampleCounts = totalSphere;
 
         int sphereTestPerAxis = (int) Mathf.Sqrt(totalSphere);
         MLManager.Instance.inputs = new Transform[(int)sphereTestPerAxis * sphereTestPerAxis];
-        LinearMLManager.Instance.inputs = new Transform[(int)sphereTestPerAxis * sphereTestPerAxis];
+        LinearMulticlassMLManager.Instance.inputs = new Transform[(int)sphereTestPerAxis * sphereTestPerAxis];
         
         for (int i = 0; i < sphereTestPerAxis; ++i)
         {
@@ -71,7 +75,7 @@ public class MultiCrossGenerator : MonoBehaviour
                 Transform tr =  Instantiate(sphereTest, new Vector3(x, 0, z), Quaternion.identity, inputsParent).transform;
                 tr.localScale =Vector3.one * sphereScale;
                 MLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
-                LinearMLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
+                LinearMulticlassMLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
             }
         }
     }
