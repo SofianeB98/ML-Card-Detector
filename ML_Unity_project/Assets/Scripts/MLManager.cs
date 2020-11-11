@@ -66,13 +66,22 @@ public class MLManager : MonoBehaviour
         foreach (var tr in dataset)
         {
             Vector3 p = tr.position;
-            inputs_dataset[idx] = p.x;
-            idx++;
-            inputs_dataset[idx] = p.z;
-            idx++;
-
+            if (input_size == 1)
+            {
+                inputs_dataset[idx] = p.x;
+                idx++;
+            }
+            else
+            {
+                inputs_dataset[idx] = p.x;
+                idx++;
+                inputs_dataset[idx] = p.z;
+                idx++;
+            }
+            
             outputs[idx_out] = p.y;
             idx_out++;
+
         }
 
 
@@ -111,13 +120,22 @@ public class MLManager : MonoBehaviour
         foreach (var tr in dataset)
         {
             Vector3 p = tr.position;
-            inputs_dataset[idx] = p.x;
-            idx++;
-            inputs_dataset[idx] = p.z;
-            idx++;
-
+            if (input_size == 1)
+            {
+                inputs_dataset[idx] = p.x;
+                idx++;
+            }
+            else
+            {
+                inputs_dataset[idx] = p.x;
+                idx++;
+                inputs_dataset[idx] = p.z;
+                idx++;
+            }
+            
             outputs[idx_out] = p.y;
             idx_out++;
+
         }
 
 

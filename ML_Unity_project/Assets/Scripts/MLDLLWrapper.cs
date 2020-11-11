@@ -6,13 +6,12 @@ using UnityEngine;
 public static class MLDLLWrapper
 {
     // -----------------------------------------------------------------------------------------------------------------
-    
-    //Pas besoins de mettre l'extention
+    // Pas besoins de mettre l'extention à MLDLL
     [DllImport("MLDLL", EntryPoint = "my_add")]
     public static extern double MyAdd(double a, double b);
-
     // -----------------------------------------------------------------------------------------------------------------
-    
+
+    #region Linear Functions
     [DllImport("MLDLL", EntryPoint = "create_linear_model")]
     public static extern System.IntPtr CreateLinearModel(int input_counts);
     
@@ -30,9 +29,9 @@ public static class MLDLLWrapper
     
     [DllImport("MLDLL", EntryPoint = "delete_linear_model")]
     public static extern void DeleteLinearModel(System.IntPtr model);
-    
-    // -----------------------------------------------------------------------------------------------------------------
-    
+    #endregion
+
+    #region MLP Functions
     [DllImport("MLDLL", EntryPoint = "create_model")]
     public static extern System.IntPtr CreateModel(int[] npl, int layer_counts);
     
@@ -45,9 +44,8 @@ public static class MLDLLWrapper
 
     [DllImport("MLDLL", EntryPoint = "delete_model")]
     public static extern void DeleteModel(System.IntPtr model);
+    #endregion
 
     [DllImport("MLDLL", EntryPoint = "delete_double_array_ptr")]
     public static extern void DeleteDoubleArrayPtr(System.IntPtr ptr);
-    
-    // -----------------------------------------------------------------------------------------------------------------
 }
