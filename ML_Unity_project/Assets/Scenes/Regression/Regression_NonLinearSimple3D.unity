@@ -1589,6 +1589,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db8f2ffbb3b71704295175acf6c7c209, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  createModelOnStart: 1
   npl: 020000000200000001000000
   sampleCounts: 4
   epochs: 1000
