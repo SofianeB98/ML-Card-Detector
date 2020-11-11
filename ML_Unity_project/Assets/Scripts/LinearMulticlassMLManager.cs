@@ -39,11 +39,19 @@ public class LinearMulticlassMLManager : MonoBehaviour
 
     private void Start()
     {
+        if (!enabled)
+            return;
         models = new IntPtr[classCount];
     }
 
     private void OnDestroy()
     {
+        if (models == null || models.Length <= 0)
+        {
+            Debug.LogError("Models are empty");
+            return;
+        }
+        
         for (int i = 0; i < models.Length; i++)
         {
             if (models[i].Equals(IntPtr.Zero))
@@ -110,6 +118,9 @@ public class LinearMulticlassMLManager : MonoBehaviour
 
     public void TrainModel()
     {
+        if (!enabled)
+            return;
+        
         if (models == null || models.Length <= 0)
         {
             Debug.LogError("Models are empty");
@@ -198,6 +209,9 @@ public class LinearMulticlassMLManager : MonoBehaviour
 
     public void Predict()
     {
+        if (!enabled)
+            return;
+        
         if (models == null || models.Length <= 0)
         {
             Debug.LogError("Models are empty");

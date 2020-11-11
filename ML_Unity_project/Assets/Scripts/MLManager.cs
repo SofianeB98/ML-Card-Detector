@@ -135,6 +135,8 @@ public class MLManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (!enabled)
+            return;
         if (model.Equals(IntPtr.Zero))
             return;
         
@@ -233,6 +235,8 @@ public class MLManager : MonoBehaviour
     
     public void TrainModel()
     {
+        if (!enabled)
+            return;
         if (model.Equals(IntPtr.Zero))
         {
             Debug.LogError("You trying to train your model, but it's not created");
@@ -246,6 +250,8 @@ public class MLManager : MonoBehaviour
 
     public void Predict()
     {
+        if (!enabled)
+            return;
         if (model.Equals(IntPtr.Zero))
         {
             Debug.LogError("You trying to predict these inputs, but your model is not created");
