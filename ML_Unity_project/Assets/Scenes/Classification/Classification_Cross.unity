@@ -322,6 +322,7 @@ GameObject:
   m_Component:
   - component: {fileID: 675320864}
   - component: {fileID: 675320865}
+  - component: {fileID: 675320866}
   m_Layer: 0
   m_Name: ML Manager
   m_TagString: Untagged
@@ -363,6 +364,28 @@ MonoBehaviour:
   isClassification: 1
   dataset: []
   inputs: []
+--- !u!114 &675320866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675320863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: beef047d93781c649bcdb54a963720d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sphereRouge: {fileID: 3113651776527273542, guid: 68f10f0b9d00f234eaf213a6989d2732,
+    type: 3}
+  sphereBleu: {fileID: 674395893422710460, guid: 59166cb8f86c8744a937f7ec04dfed8e,
+    type: 3}
+  sphereTest: {fileID: 2070944198876127877, guid: b7f2ad30067ca48489c74dfd34babd8e,
+    type: 3}
+  sphereScale: 0.1
+  totalSphere: 500
+  datasetParent: {fileID: 1869884968}
+  inputsParent: {fileID: 621445213}
 --- !u!1 &948113667
 GameObject:
   m_ObjectHideFlags: 0
