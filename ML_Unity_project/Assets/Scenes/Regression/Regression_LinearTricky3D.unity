@@ -2914,6 +2914,7 @@ GameObject:
   m_Component:
   - component: {fileID: 675320864}
   - component: {fileID: 675320865}
+  - component: {fileID: 675320866}
   m_Layer: 0
   m_Name: ML Manager
   m_TagString: Untagged
@@ -2942,7 +2943,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 675320863}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db8f2ffbb3b71704295175acf6c7c209, type: 3}
   m_Name: 
@@ -2953,6 +2954,111 @@ MonoBehaviour:
   epochs: 1000
   alpha: 0.01
   isClassification: 0
+  dataset:
+  - {fileID: 897545457}
+  - {fileID: 1831621375}
+  - {fileID: 391742475}
+  inputs:
+  - {fileID: 97270994}
+  - {fileID: 1818012899}
+  - {fileID: 53802160}
+  - {fileID: 1552480099}
+  - {fileID: 1861439915}
+  - {fileID: 937754468}
+  - {fileID: 1662688270}
+  - {fileID: 1669117343}
+  - {fileID: 812395396}
+  - {fileID: 1216482669}
+  - {fileID: 1782623311}
+  - {fileID: 219785087}
+  - {fileID: 350121799}
+  - {fileID: 1169258080}
+  - {fileID: 1508200600}
+  - {fileID: 718981984}
+  - {fileID: 1820731203}
+  - {fileID: 491627532}
+  - {fileID: 1954426047}
+  - {fileID: 1671392141}
+  - {fileID: 1055716886}
+  - {fileID: 1550770056}
+  - {fileID: 1068827224}
+  - {fileID: 160094907}
+  - {fileID: 423898347}
+  - {fileID: 1605283241}
+  - {fileID: 1865491364}
+  - {fileID: 235153812}
+  - {fileID: 612078738}
+  - {fileID: 546015705}
+  - {fileID: 52623639}
+  - {fileID: 1399783562}
+  - {fileID: 1642416355}
+  - {fileID: 87518037}
+  - {fileID: 1760728426}
+  - {fileID: 972391060}
+  - {fileID: 77293689}
+  - {fileID: 1091748949}
+  - {fileID: 1689498609}
+  - {fileID: 808643807}
+  - {fileID: 189737338}
+  - {fileID: 56117433}
+  - {fileID: 1586969282}
+  - {fileID: 1594453792}
+  - {fileID: 1939515194}
+  - {fileID: 2026859238}
+  - {fileID: 1611693055}
+  - {fileID: 2133111324}
+  - {fileID: 251185922}
+  - {fileID: 248579206}
+  - {fileID: 181071844}
+  - {fileID: 898655172}
+  - {fileID: 344319784}
+  - {fileID: 404647709}
+  - {fileID: 737009872}
+  - {fileID: 1991419184}
+  - {fileID: 2113430559}
+  - {fileID: 1169307990}
+  - {fileID: 1488461600}
+  - {fileID: 688875716}
+  - {fileID: 468534967}
+  - {fileID: 711284422}
+  - {fileID: 1896733690}
+  - {fileID: 118754362}
+  - {fileID: 191514049}
+  - {fileID: 2074867202}
+  - {fileID: 1027483311}
+  - {fileID: 1677567589}
+  - {fileID: 1299978562}
+  - {fileID: 99486652}
+  - {fileID: 1770421143}
+  - {fileID: 1662782809}
+  - {fileID: 1779269708}
+  - {fileID: 1157417720}
+  - {fileID: 994773160}
+  - {fileID: 196040741}
+  - {fileID: 443127814}
+  - {fileID: 1151797617}
+  - {fileID: 1741433741}
+  - {fileID: 742405449}
+  - {fileID: 1949759196}
+--- !u!114 &675320866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675320863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc835c3c1f8895a4890b84fb25d9b16c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  createModelOnStart: 1
+  sampleCounts: 3
+  epochs: 1
+  alpha: 0.01
+  isClassification: 0
+  input_size: 2
+  output_size: 1
   dataset:
   - {fileID: 897545457}
   - {fileID: 1831621375}
@@ -8430,6 +8536,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 675320866}
+        m_MethodName: TrainModel
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2013613775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8643,6 +8760,17 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 675320865}
+        m_MethodName: Predict
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 675320866}
         m_MethodName: Predict
         m_Mode: 1
         m_Arguments:

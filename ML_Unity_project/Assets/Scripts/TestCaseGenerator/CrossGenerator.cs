@@ -17,6 +17,8 @@ public class CrossGenerator : MonoBehaviour
     private void Start()
     {
         MLManager.Instance.dataset = new Transform[totalSphere];
+        LinearMLManager.Instance.dataset = new Transform[totalSphere];
+        
         for (int i = 0; i < totalSphere; ++i)
         {
             Vector3 pos = new Vector3(Random.Range(-1.0f, 1.01f), 0.0f, Random.Range(-1.0f, 1.01f));
@@ -25,33 +27,40 @@ public class CrossGenerator : MonoBehaviour
             if (blue)
             {
                 pos.y = 1.0f;
-                MLManager.Instance.dataset[i] =
-                    Instantiate(sphereBleu, pos, Quaternion.identity, datasetParent).transform;
-                MLManager.Instance.dataset[i].localScale = Vector3.one * sphereScale;
+                Transform tr = Instantiate(sphereBleu, pos, Quaternion.identity, datasetParent).transform;
+                tr.localScale = Vector3.one * sphereScale;
+
+                MLManager.Instance.dataset[i] = tr;
+                LinearMLManager.Instance.dataset[i] = tr;
             }
             else
             {
                 pos.y = -1.0f;
-                MLManager.Instance.dataset[i] =
-                    Instantiate(sphereRouge, pos, Quaternion.identity, datasetParent).transform;
-                MLManager.Instance.dataset[i].localScale = Vector3.one * sphereScale;
+                Transform tr = Instantiate(sphereRouge, pos, Quaternion.identity, datasetParent).transform;
+                tr.localScale = Vector3.one * sphereScale;
+
+                MLManager.Instance.dataset[i] = tr;
+                LinearMLManager.Instance.dataset[i] = tr;
             }
         }
 
         MLManager.Instance.sampleCounts = totalSphere;
-
+        LinearMLManager.Instance.sampleCounts = totalSphere;
+        
         int sphereTestPerAxis = (int)(Mathf.Sqrt(totalSphere));
         MLManager.Instance.inputs = new Transform[(int) sphereTestPerAxis * sphereTestPerAxis];
-
+        LinearMLManager.Instance.inputs = new Transform[(int) sphereTestPerAxis * sphereTestPerAxis];
+        
         for (int i = 0; i < sphereTestPerAxis; ++i)
         {
             float x = Mathf.Lerp(-1.0f, 1.0f, (float) i / (float) sphereTestPerAxis);
             for (int j = 0; j < sphereTestPerAxis; ++j)
             {
                 float z = Mathf.Lerp(-1.0f, 1.0f, (float) j / (float) sphereTestPerAxis);
-                MLManager.Instance.inputs[i * sphereTestPerAxis + j] =
-                    Instantiate(sphereTest, new Vector3(x, 0, z), Quaternion.identity, inputsParent).transform;
-                MLManager.Instance.inputs[i * sphereTestPerAxis + j].localScale = Vector3.one * sphereScale;
+                Transform tr =  Instantiate(sphereTest, new Vector3(x, 0, z), Quaternion.identity, inputsParent).transform;
+                tr.localScale =Vector3.one * sphereScale;
+                MLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
+                LinearMLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
             }
         }
         

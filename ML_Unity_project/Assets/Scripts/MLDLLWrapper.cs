@@ -15,6 +15,9 @@ public static class MLDLLWrapper
     [DllImport("MLDLL", EntryPoint = "create_linear_model")]
     public static extern System.IntPtr CreateLinearModel(int input_counts);
     
+    [DllImport("MLDLL", EntryPoint = "create_linear_model_regression")]
+    public static extern System.IntPtr CreateLinearModelRegression(int input_counts);
+    
     [DllImport("MLDLL", EntryPoint = "predict_linear_model_multiclass")]
     public static extern System.IntPtr PredictLinearModelMulticlass(System.IntPtr model, double[] inputs, int input_count, int class_count, bool is_classification);
     

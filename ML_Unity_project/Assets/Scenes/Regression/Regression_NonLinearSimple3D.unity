@@ -1556,6 +1556,7 @@ GameObject:
   m_Component:
   - component: {fileID: 675320864}
   - component: {fileID: 675320865}
+  - component: {fileID: 675320866}
   m_Layer: 0
   m_Name: ML Manager
   m_TagString: Untagged
@@ -1584,7 +1585,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 675320863}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db8f2ffbb3b71704295175acf6c7c209, type: 3}
   m_Name: 
@@ -1595,6 +1596,56 @@ MonoBehaviour:
   epochs: 1000
   alpha: 0.1
   isClassification: 0
+  dataset:
+  - {fileID: 897545457}
+  - {fileID: 1831621375}
+  - {fileID: 391742475}
+  - {fileID: 1963088089}
+  inputs:
+  - {fileID: 97270994}
+  - {fileID: 1049894744}
+  - {fileID: 1574606423}
+  - {fileID: 1951574492}
+  - {fileID: 696303019}
+  - {fileID: 1738422489}
+  - {fileID: 582068690}
+  - {fileID: 1220387041}
+  - {fileID: 78971072}
+  - {fileID: 388757084}
+  - {fileID: 598964780}
+  - {fileID: 1283581046}
+  - {fileID: 112771140}
+  - {fileID: 1877131347}
+  - {fileID: 285541082}
+  - {fileID: 34001330}
+  - {fileID: 1939689303}
+  - {fileID: 502377887}
+  - {fileID: 2101264033}
+  - {fileID: 4567167}
+  - {fileID: 490412914}
+  - {fileID: 386676489}
+  - {fileID: 763776191}
+  - {fileID: 2040702990}
+  - {fileID: 1816086871}
+--- !u!114 &675320866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675320863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc835c3c1f8895a4890b84fb25d9b16c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  createModelOnStart: 1
+  sampleCounts: 4
+  epochs: 1
+  alpha: 0.01
+  isClassification: 1
+  input_size: 2
+  output_size: 1
   dataset:
   - {fileID: 897545457}
   - {fileID: 1831621375}
@@ -3391,6 +3442,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 675320866}
+        m_MethodName: TrainModel
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2013613775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3604,6 +3666,17 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 675320865}
+        m_MethodName: Predict
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 675320866}
         m_MethodName: Predict
         m_Mode: 1
         m_Arguments:
