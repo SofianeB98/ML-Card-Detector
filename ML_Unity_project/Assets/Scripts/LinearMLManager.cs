@@ -81,8 +81,49 @@ public class LinearMLManager : MonoBehaviour
                 idx++;
             }
             
-            outputs[idx_out] = p.y;
-            idx_out++;
+            switch (output_size)
+            {
+                case 0:
+                case 1:
+                    outputs[idx_out] = p.y;
+                    idx_out++;
+                    break;
+                
+                case 2:
+                    break;
+                
+                case 3:
+                    if (p.y.Equals(1))
+                    {
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(2))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(3))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                    }
+                    break;
+            }
 
         }
 
@@ -138,8 +179,49 @@ public class LinearMLManager : MonoBehaviour
                 idx++;
             }
             
-            outputs[idx_out] = p.y;
-            idx_out++;
+            switch (output_size)
+            {
+                case 0:
+                case 1:
+                    outputs[idx_out] = p.y;
+                    idx_out++;
+                    break;
+                
+                case 2:
+                    break;
+                
+                case 3:
+                    if (p.y.Equals(1))
+                    {
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(2))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(3))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                    }
+                    break;
+            }
 
         }
 

@@ -15,6 +15,7 @@ public class MLManager : MonoBehaviour
     [Header("ML Parameter")] 
     public bool createModelOnStart = true;
     public int[] npl = new int[0];
+    [Space(10)]
     public int sampleCounts = 4;
     public int epochs = 10000;
     public double alpha = 0.01;
@@ -81,9 +82,50 @@ public class MLManager : MonoBehaviour
                 inputs_dataset[idx] = p.z;
                 idx++;
             }
-            
-            outputs[idx_out] = p.y;
-            idx_out++;
+
+            switch (output_size)
+            {
+                case 0:
+                case 1:
+                    outputs[idx_out] = p.y;
+                    idx_out++;
+                    break;
+                
+                case 2:
+                    break;
+                
+                case 3:
+                    if (p.y.Equals(1))
+                    {
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(2))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(3))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                    }
+                    break;
+            }
 
         }
 
@@ -139,8 +181,49 @@ public class MLManager : MonoBehaviour
                 idx++;
             }
             
-            outputs[idx_out] = p.y;
-            idx_out++;
+            switch (output_size)
+            {
+                case 0:
+                case 1:
+                    outputs[idx_out] = p.y;
+                    idx_out++;
+                    break;
+                
+                case 2:
+                    break;
+                
+                case 3:
+                    if (p.y.Equals(1))
+                    {
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(2))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                    }
+                    
+                    if (p.y.Equals(3))
+                    {
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 0.0;
+                        idx_out++;
+                        outputs[idx_out] = 1.0;
+                        idx_out++;
+                    }
+                    break;
+            }
 
         }
 
@@ -182,17 +265,39 @@ public class MLManager : MonoBehaviour
                 data = new double[]{inputs[i].position.x};
             else
                 data = new double[]{inputs[i].position.x, inputs[i].position.z};
-            
-            str += "[ " + data[0].ToString("0.00") + ", " + data[1].ToString("0.00") + " ] = ";
-            var result = MLDLLWrapper.Predict(model, data, isClassification);
-            double[] r = new double[output_size + 1];
-            System.Runtime.InteropServices.Marshal.Copy(result, r, 0, output_size + 1);
-            str += r[1].ToString("0.000");
-            Debug.LogWarning("Prediction : " + str);
-            
-            inputs[i].position = new Vector3(inputs[i].position.x, (isClassification ? Mathf.RoundToInt((float)r[1]) : (float)r[1]), inputs[i].position.z);
 
-            MLDLLWrapper.DeleteDoubleArrayPtr(result);
+            if (output_size == 1)
+            {
+                str += "[ " + (input_size == 2 ? data[0].ToString("0.00") + ", " + data[1].ToString("0.00") : data[0].ToString("0.00")) + " ] = ";
+                var result = MLDLLWrapper.Predict(model, data, isClassification);
+                double[] r = new double[output_size + 1];
+                System.Runtime.InteropServices.Marshal.Copy(result, r, 0, output_size + 1);
+                str += r[1].ToString("0.000");
+                Debug.LogWarning("Prediction : " + str);
+
+                inputs[i].position = new Vector3(inputs[i].position.x,
+                    (isClassification ? Mathf.RoundToInt((float) r[1]) : (float) r[1]), inputs[i].position.z);
+
+                MLDLLWrapper.DeleteDoubleArrayPtr(result);
+            }
+            else if (output_size == 3)
+            {
+                str += "[ " + (input_size == 2 ? data[0].ToString("0.00") + ", " + data[1].ToString("0.00") : data[0].ToString("0.00")) + " ] = ";
+                var result = MLDLLWrapper.Predict(model, data, isClassification);
+                double[] r = new double[output_size + 1];
+                System.Runtime.InteropServices.Marshal.Copy(result, r, 0, output_size + 1);
+                for(int z = 0; z < r.Length; z++)
+                    str += r[z].ToString("0.000") + " || ";
+                
+                Debug.LogWarning("Prediction : " + str);
+
+                inputs[i].position = new Vector3(inputs[i].position.x,
+                    (r[1] > r[2] && r[1] > r[3] ? 1 :
+                        r[2] > r[1] && r[2] > r[3] ? 2 :
+                        r[3] > r[2] && r[1] < r[3] ? 3 : -1), inputs[i].position.z);
+
+                MLDLLWrapper.DeleteDoubleArrayPtr(result);
+            }
         }
     }
 }
