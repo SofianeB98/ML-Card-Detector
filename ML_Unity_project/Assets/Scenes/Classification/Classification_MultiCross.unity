@@ -358,10 +358,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   createModelOnStart: 0
-  npl: 02000000050000000500000003000000
+  npl: 020000000f0000000f00000003000000
   sampleCounts: 3
-  epochs: 4500
-  alpha: 0.11
+  epochs: 100000
+  alpha: 0.01
   isClassification: 1
   dataset: []
   inputs: []
@@ -408,8 +408,8 @@ MonoBehaviour:
     type: 3}
   datasetParent: {fileID: 1869884968}
   inputsParent: {fileID: 621445213}
-  totalSphere: 500
-  sphereScale: 0.06
+  totalSphere: 1000
+  sphereScale: 0.05
 --- !u!1 &948113667
 GameObject:
   m_ObjectHideFlags: 0

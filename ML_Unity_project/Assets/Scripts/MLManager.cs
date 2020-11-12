@@ -195,7 +195,7 @@ public class MLManager : MonoBehaviour
                     break;
                 
                 case 3:
-                    if (p.y.Equals(1))
+                    if (Mathf.Abs(p.y - 1.0f) <= 0.01f)
                     {
                         outputs[idx_out] = 1.0;
                         idx_out++;
@@ -204,8 +204,7 @@ public class MLManager : MonoBehaviour
                         outputs[idx_out] = 0.0;
                         idx_out++;
                     }
-                    
-                    if (p.y.Equals(2))
+                    else if (Mathf.Abs(p.y - 2.0f) <= 0.01f)
                     {
                         outputs[idx_out] = 0.0;
                         idx_out++;
@@ -214,8 +213,7 @@ public class MLManager : MonoBehaviour
                         outputs[idx_out] = 0.0;
                         idx_out++;
                     }
-                    
-                    if (p.y.Equals(3))
+                    else if (Mathf.Abs(p.y - 3.0f) <= 0.01f)
                     {
                         outputs[idx_out] = 0.0;
                         idx_out++;

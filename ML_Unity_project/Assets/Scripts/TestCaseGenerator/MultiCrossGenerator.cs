@@ -68,10 +68,10 @@ public class MultiCrossGenerator : MonoBehaviour
         
         for (int i = 0; i < sphereTestPerAxis; ++i)
         {
-            float x = Mathf.Lerp(-1.0f, 1.0f, (float) i / (float) sphereTestPerAxis);
+            float x = Mathf.Lerp(-1.0f, 1.01f, (float) i / (float) sphereTestPerAxis);
             for (int j = 0; j < sphereTestPerAxis; ++j)
             {
-                float z = Mathf.Lerp(-1.0f, 1.0f, (float) j / (float) sphereTestPerAxis);
+                float z = Mathf.Lerp(-1.0f, 1.01f, (float) j / (float) sphereTestPerAxis);
                 Transform tr =  Instantiate(sphereTest, new Vector3(x, 0, z), Quaternion.identity, inputsParent).transform;
                 tr.localScale =Vector3.one * sphereScale;
                 MLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
