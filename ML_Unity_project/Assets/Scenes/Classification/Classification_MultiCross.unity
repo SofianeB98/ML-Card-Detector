@@ -358,10 +358,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   createModelOnStart: 0
-  npl: 020000000f0000000f00000003000000
+  npl: 02000000120000001200000003000000
   sampleCounts: 3
-  epochs: 100000
-  alpha: 0.01
+  epochs: 800000
+  alpha: 0.1
   isClassification: 1
   dataset: []
   inputs: []
