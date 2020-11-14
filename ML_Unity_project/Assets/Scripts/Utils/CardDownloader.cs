@@ -12,11 +12,12 @@ public class CardDownloader : MonoBehaviour
     public int cardCount = 295;
     public string outPath = "";
     public string folderName = "Magic";
-
+    public bool useDic = false;
+    
     public Dictionary<string, int> pokemonDownloadDic = new Dictionary<string, int>();
 
-    private string url = "https://images.pokemontcg.io/{1}/{0}.png"; //permet de dl les carte pokemon";
-    //private string url = "http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid={0}&type=card";
+    //private string url = "https://images.pokemontcg.io/{1}/{0}.png"; //permet de dl les carte pokemon";
+    public string url = "http://gatherer.wizards.com/Handlers/Image.ashx?multiverseid={0}&type=card";
     
     private string finalPath = "";
     private string cardName = "";
@@ -57,7 +58,7 @@ public class CardDownloader : MonoBehaviour
         }
         
         if (canDownload)
-            StartCoroutine(CardDownload(true));
+            StartCoroutine(CardDownload(useDic));
     }
 
     private IEnumerator CardDownload(bool useDic = false)
@@ -88,13 +89,17 @@ public class CardDownloader : MonoBehaviour
         else
         {
             Debug.LogWarning("use dic version");
+            int carNb = 0;
+            int start = 0;
             foreach (var key in pokemonDownloadDic.Keys)
             {
                 var v = pokemonDownloadDic[key];
                 
-                for (int i = startId; i < v; i++)
+                for (int i = start; i < v; i++)
                 {
-                    string cName = cardName + i.ToString("0000");
+                    string cName = cardName + carNb.ToString("0000");
+                    carNb++;
+                    
                     string realUrl = string.Format(url, i, key);
                     using (UnityWebRequest request = UnityWebRequest.Get(realUrl))
                     {
@@ -111,10 +116,13 @@ public class CardDownloader : MonoBehaviour
                         }
                     }
                 }
+
+                start = 1;
             }
             
         }
         
+        Debug.LogWarning("DOWNLOAD FINI !");
         
         yield break;
     }
