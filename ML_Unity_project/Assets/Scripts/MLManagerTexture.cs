@@ -88,16 +88,27 @@ public class MLManagerTexture : MonoBehaviour
             Debug.Log("Modèle détruit\n");
         }
         
-        model = MLDLLWrapper.CreateModel(npl, npl.Length);
-        Debug.Log("Modèle créé \n");
+        LoadAllTextures();
 
+        int isize = datasets[0].tex.width * datasets[0].tex.height;
         if (npl.Length > 0)
         {
+            if (!npl[0].Equals(isize))
+                npl[0] = isize;
+            
+            input_size = npl[0];
+            output_size = npl[npl.Length - 1];
+        }
+        else
+        {
+            npl = new[] {isize, 1};
             input_size = npl[0];
             output_size = npl[npl.Length - 1];
         }
         
-        LoadAllTextures();
+        model = MLDLLWrapper.CreateModel(npl, npl.Length);
+        Debug.Log("Modèle créé \n");
+        
     }
 
     public void TrainModel()
@@ -128,7 +139,17 @@ public class MLManagerTexture : MonoBehaviour
         }
 
         Debug.Log("Prediction du dataset !\n");
-        int idx = 0;
+        double[] inputTmp = new double[input_size];
+        for (int i = 0; i < datasets[0].tex.width; i++)
+        {
+            for (int j = 0; j < datasets[0].tex.height; j++)
+                inputTmp[i] = datasets[0].tex.GetPixel(i, j).grayscale;
+        }
+        var result = MLDLLWrapper.Predict(model, inputTmp, isClassification);
+        double[] r = new double[output_size + 1];
+        System.Runtime.InteropServices.Marshal.Copy(result, r, 0, output_size + 1);
+        Debug.LogWarning("Prediction : " + foldersName[Mathf.RoundToInt((float)(r[1] + 1.0 * 0.5))]);
+        MLDLLWrapper.DeleteDoubleArrayPtr(result);
     }
     #endregion
 
@@ -180,6 +201,8 @@ public class MLManagerTexture : MonoBehaviour
         }
 
         sampleCounts = datasets.Length;
+        
+        Debug.LogWarning("Toutes les textures ont été chargées !");
     }
     #endregion
 
