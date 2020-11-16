@@ -361,7 +361,7 @@ MonoBehaviour:
   npl: 02000000120000001200000003000000
   sampleCounts: 3
   epochs: 800000
-  alpha: 0.1
+  alpha: 0.01
   isClassification: 1
   dataset: []
   inputs: []

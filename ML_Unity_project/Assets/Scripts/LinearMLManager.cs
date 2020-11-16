@@ -266,12 +266,15 @@ public class LinearMLManager : MonoBehaviour
         {
             string str = "";
 
-            double[] data; 
-            
-            if(input_size == 1)
-                data = isClassification ? new double[] {1.0, inputs[i].position.x} : new double[] {inputs[i].position.x};
+            double[] data;
+
+            if (input_size == 1)
+                data = new double[]
+                {
+                    1.0, inputs[i].position.x
+                }; //new double[] {1.0, inputs[i].position.x} : new double[] {inputs[i].position.x};
             else
-                data = isClassification ? new double[] {1.0, inputs[i].position.x, inputs[i].position.z} : new double[] {inputs[i].position.x, inputs[i].position.z};
+                data = new double[] {1.0, inputs[i].position.x, inputs[i].position.z};//isClassification ? new double[] {1.0, inputs[i].position.x, inputs[i].position.z} : new double[] {inputs[i].position.x, inputs[i].position.z};
             
             str += "[ " + (input_size == 2 ? data[0].ToString("0.00") + ", " + data[1].ToString("0.00") : data[0].ToString("0.00")) + " ] = ";
             var result = MLDLLWrapper.PredictLinearModel(model, data, input_size, isClassification);
@@ -279,7 +282,7 @@ public class LinearMLManager : MonoBehaviour
             str += result.ToString("0.000");
             Debug.LogWarning("Prediction : " + str);
             
-            inputs[i].position = new Vector3(inputs[i].position.x, (isClassification ? Mathf.RoundToInt((float)result) : (float)result), inputs[i].position.z);
+            inputs[i].position = new Vector3(inputs[i].position.x, (isClassification ? (result < 0 ? -1 : 1) : (float)result), inputs[i].position.z);
 
             //MLDLLWrapper.DeleteDoubleArrayPtr(result);
         }

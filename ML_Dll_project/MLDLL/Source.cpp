@@ -29,10 +29,10 @@ extern "C"
 	__declspec(dllexport) double* create_linear_model_regression(int input_counts)
 	{
 		//On crée un tableau de input + 1 pour inclure le biais
-		auto weights = new double[input_counts];
+		auto weights = new double[input_counts + 1];
 
 		//Initialise le model avec des poids random selon le nombre d'input
-		for (auto i = 0; i < input_counts; ++i)
+		for (auto i = 0; i < input_counts + 1; ++i)
 		{
 			weights[i] = rand() / static_cast<double>(RAND_MAX) * 2.0 - 1.0;
 		}
@@ -68,7 +68,7 @@ extern "C"
 		 */
 
 		
-		for (int i = 0; i < (is_classification ? input_count + 1 : input_count); ++i)
+		for (int i = 0; i < input_count + 1; ++i)
 		{
 			sum += model[i] * inputs[i];
 
@@ -102,17 +102,20 @@ extern "C"
 	{
 		//Pas besoins d'utiliser le model car on va directement calculer les poids optimaux
 		//On crée les matrice des inputs et outputs
-		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(sample_counts, input_count);
+		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(sample_counts, input_count + 1);
 		Eigen::MatrixXd all_output_m = Eigen::MatrixXd(sample_counts, expected_output_count);
 
-		Eigen::MatrixXd w = Eigen::MatrixXd(1, input_count);
+		Eigen::MatrixXd w = Eigen::MatrixXd(1, input_count + 1);
 		
 		//on remplit les matrices
 		for(int i = 0; i < sample_counts; ++i)
 		{
-			for(int j = 0; j < input_count; ++j)
+			for(int j = 0; j < input_count + 1; ++j)
 			{
-				all_inputs_m(i, j) = all_inputs[i * input_count + j];
+				if(j == 0)
+					all_inputs_m(i, j) = 1;
+				else
+					all_inputs_m(i, j) = all_inputs[i * input_count + (j - 1)];
 			}
 		}
 		std::cout << "INPUTS : \n" << all_inputs_m << std::endl;
@@ -120,6 +123,7 @@ extern "C"
 		{
 			for (int j = 0; j < expected_output_count; ++j)
 			{
+				//all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
 				all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
 			}
 		}

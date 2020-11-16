@@ -583,7 +583,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   createModelOnStart: 1
-  sampleCounts: 4
+  sampleCounts: 2
   epochs: 1
   alpha: 0.01
   isClassification: 0

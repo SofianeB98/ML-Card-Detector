@@ -360,8 +360,8 @@ MonoBehaviour:
   createModelOnStart: 0
   npl: 0200000001000000
   sampleCounts: 3
-  epochs: 8000
-  alpha: 0.11
+  epochs: 10000
+  alpha: 0.1
   isClassification: 1
   dataset: []
   inputs: []

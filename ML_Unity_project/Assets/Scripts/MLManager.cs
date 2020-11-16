@@ -280,7 +280,7 @@ public class MLManager : MonoBehaviour
                 Debug.LogWarning("Prediction : " + str);
 
                 inputs[i].position = new Vector3(inputs[i].position.x,
-                    (isClassification ? Mathf.RoundToInt((float) r[1]) : (float) r[1]), inputs[i].position.z);
+                    (isClassification ? (r[1] < 0 ? -1 : 1) : (float) r[1]), inputs[i].position.z); //Mathf.RoundToInt((float) r[1])
 
                 MLDLLWrapper.DeleteDoubleArrayPtr(result);
             }
