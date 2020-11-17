@@ -604,7 +604,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   createModelOnStart: 1
-  npl: 010000001000000001000000
+  npl: 010000002000000001000000
   sampleCounts: 4
   epochs: 1000
   alpha: 0.01
@@ -613,6 +613,7 @@ MonoBehaviour:
   useDatasetAsNPercent: 0.8
   datasets: []
   classId: 0
+  mode: 1
   mainFolder: D:\Cours\ESGI_5_Master_3DJV\Machine Learning\ML_Esgi\Dataset
   foldersName:
   - Magic
