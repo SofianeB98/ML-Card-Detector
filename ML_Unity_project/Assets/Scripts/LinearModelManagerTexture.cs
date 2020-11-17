@@ -2,19 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class MLManagerTexture : MonoBehaviour
+public class LinearModelManagerTexture : MonoBehaviour
 {
-    private static MLManagerTexture instance;
-
-    public static MLManagerTexture Instance
-    {
-        get { return instance; }
-    }
-
     public bool createModelOnStart = true;
     private System.IntPtr model;
 
@@ -35,25 +27,19 @@ public class MLManagerTexture : MonoBehaviour
     [Header("Dataset")]
     //public Texture2D[] datasets = new Texture2D[0];
     public TextureClass[] datasets = new TextureClass[0];
-
-    // public Dictionary<int, Texture2D[]> completeDatasetByClasses = new Dictionary<int, Texture2D[]>();
-    // private Dictionary<int, Texture2D[]> unusedDatasetByClasses = new Dictionary<int, Texture2D[]>();
     private double[] inputs_dataset = new double[0];
     private double[] outputs = new double[0];
-
 
     [Header("Prediction")] [Range(0, 1)] public int classId = 0;
     public PredictMode mode = PredictMode.Accuracy;
 
-
     #region Callbacks Unity
 
-    private void Awake()
+    private void Start()
     {
-        if (instance == null)
-            instance = this;
-        else if (instance != this)
-            Destroy(this);
+        if (!createModelOnStart)
+            return;
+
     }
 
     private void OnDestroy()
@@ -261,7 +247,7 @@ public class MLManagerTexture : MonoBehaviour
                         var res = MLDLLWrapper.Predict(model, inputTmp, isClassification);
                         double[] resFromPtr = new double[output_size + 1];
                         System.Runtime.InteropServices.Marshal.Copy(res, resFromPtr, 0, output_size + 1);
-                        Debug.LogWarning("Prediction : " + resFromPtr[1].ToString("0.00000000000") + " -- classe = " +
+                        Debug.LogWarning("Prediction : " + resFromPtr[1].ToString("0.00") + " -- classe = " +
                                          TextureLoader.Instance.foldersName[resFromPtr[1] < 0 ? 0 : 1]);
                         MLDLLWrapper.DeleteDoubleArrayPtr(res);
 
@@ -283,4 +269,5 @@ public class MLManagerTexture : MonoBehaviour
     }
 
     #endregion
+
 }

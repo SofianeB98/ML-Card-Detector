@@ -5,6 +5,13 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 
+//Cartes hearthstone
+//https://hearthstonejson.com/docs/cards.html
+//https://api.hearthstonejson.com/v1/25770/frFR/cards.json
+//https://art.hearthstonejson.com/v1/render/latest/enUS/256x/AT_048.png
+//
+//
+//
 public class CardDownloader : MonoBehaviour
 {
     [Header("Download Parameter")] public bool canDownload = true;

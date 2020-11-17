@@ -310,7 +310,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dece77f5848eaf5429b85e7c2d40856a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canDownload: 0
+  canDownload: 1
   cardCount: 296
   outPath: D:\Cours\ESGI_5_Master_3DJV\Machine Learning\ML_Esgi\Dataset
   folderName: Yugioh

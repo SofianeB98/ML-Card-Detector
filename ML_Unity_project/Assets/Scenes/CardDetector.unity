@@ -570,6 +570,7 @@ GameObject:
   m_Component:
   - component: {fileID: 614347455}
   - component: {fileID: 614347456}
+  - component: {fileID: 614347457}
   m_Layer: 0
   m_Name: MLManager
   m_TagString: Untagged
@@ -614,6 +615,18 @@ MonoBehaviour:
   datasets: []
   classId: 0
   mode: 1
+--- !u!114 &614347457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 614347454}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8fb9084097b97342b8b98ac3728c55b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   mainFolder: D:\Cours\ESGI_5_Master_3DJV\Machine Learning\ML_Esgi\Dataset
   foldersName:
   - Magic
