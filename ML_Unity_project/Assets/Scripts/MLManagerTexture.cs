@@ -42,10 +42,12 @@ public class MLManagerTexture : MonoBehaviour
     [Header("Dataset")] 
     //public Texture2D[] datasets = new Texture2D[0];
     public TextureClass[] datasets = new TextureClass[0];
-    public Dictionary<int, Texture2D[]> datasetsByClasses = new Dictionary<int, Texture2D[]>();
+    public Dictionary<int, Texture2D[]> completeDatasetByClasses = new Dictionary<int, Texture2D[]>();
+    private Dictionary<int, Texture2D[]> unusedDatasetByClasses = new Dictionary<int, Texture2D[]>();
     private double[] inputs_dataset = new double[0];
     private double[] outputs = new double[0];
-
+    
+    
     [Header("Prediction")] 
     [Range(0, 1)] public int classId = 0;
 
@@ -97,7 +99,7 @@ public class MLManagerTexture : MonoBehaviour
         
         //On vérifie que les input size dans npl[0]
         //soit cohérent avec la tailles des textures
-        int isize = datasetsByClasses[0][0].width * datasetsByClasses[0][0].height;
+        int isize = completeDatasetByClasses[0][0].width * completeDatasetByClasses[0][0].height;
         if (npl.Length > 0)
         {
             if (!npl[0].Equals(isize))
@@ -137,10 +139,10 @@ public class MLManagerTexture : MonoBehaviour
         for (int i = 0; i < foldersName.Length; i++)
         {
             if (texCounts == -1)
-                texCounts = Mathf.RoundToInt(datasetsByClasses[i].Length * useDatasetAsNPercent);
+                texCounts = Mathf.RoundToInt(completeDatasetByClasses[i].Length * useDatasetAsNPercent);
             else
-                texCounts = texCounts > Mathf.RoundToInt(datasetsByClasses[i].Length * useDatasetAsNPercent)
-                    ? Mathf.RoundToInt(datasetsByClasses[i].Length * useDatasetAsNPercent)
+                texCounts = texCounts > Mathf.RoundToInt(completeDatasetByClasses[i].Length * useDatasetAsNPercent)
+                    ? Mathf.RoundToInt(completeDatasetByClasses[i].Length * useDatasetAsNPercent)
                     : texCounts;
         }
 
@@ -153,14 +155,18 @@ public class MLManagerTexture : MonoBehaviour
             for (int i = 0; i < foldersName.Length; i++)
             {
                 List<int> randomIndex = new List<int>();
+                
+                if(!unusedDatasetByClasses.ContainsKey(i))
+                    unusedDatasetByClasses.Add(i, new Texture2D[completeDatasetByClasses[i].Length - texCounts]);
+                
                 for (int j = 0; j < texCounts; j++)
                 {
                     //on tire un index au hasard
-                    int rdm = Random.Range(0, datasetsByClasses[i].Length);
+                    int rdm = Random.Range(0, completeDatasetByClasses[i].Length);
                     int ite = 0;
-                    while ((randomIndex.Contains(rdm) && randomIndex.Count >= 1) || ite >= datasetsByClasses[i].Length)
+                    while ((randomIndex.Contains(rdm) && randomIndex.Count >= 1) || ite >= completeDatasetByClasses[i].Length)
                     {
-                        rdm = Random.Range(0, datasetsByClasses[i].Length);
+                        rdm = Random.Range(0, completeDatasetByClasses[i].Length);
                         ite++;
                     }
 
@@ -168,12 +174,22 @@ public class MLManagerTexture : MonoBehaviour
 
                     //on ajoute la texture
                     datasets[idx] = new TextureClass();
-                    datasets[idx].tex = datasetsByClasses[i][rdm];
+                    datasets[idx].tex = completeDatasetByClasses[i][rdm];
                     datasets[idx].classe = i;
                     idx++;
                 }
+
+                int tmp = 0;
+                for (int j = 0; j < completeDatasetByClasses[i].Length; j++)
+                {
+                    if(randomIndex.Contains(j))
+                        continue;
+
+                    unusedDatasetByClasses[i][tmp] = completeDatasetByClasses[i][j];
+                    tmp++;
+                }
             }
-        
+            
             //On remplit de double[] array
             inputs_dataset = new double[datasets.Length * input_size];
             outputs = new double[datasets.Length * output_size];
@@ -215,21 +231,20 @@ public class MLManagerTexture : MonoBehaviour
         Debug.Log("Prediction du dataset !\n");
         double[] inputTmp = new double[input_size];
 
-        int rdm = Random.Range(0, datasetsByClasses[classId].Length);
+        int rdm = Random.Range(0, unusedDatasetByClasses[classId].Length);
         
-        for (int i = 0; i < datasetsByClasses[classId][rdm].width; i++)
+        for (int i = 0; i < unusedDatasetByClasses[classId][rdm].width; i++)
         {
-            for (int j = 0; j < datasetsByClasses[classId][rdm].height; j++)
+            for (int j = 0; j < unusedDatasetByClasses[classId][rdm].height; j++)
             {
-                inputTmp[i * datasetsByClasses[classId][rdm].width + j] = datasetsByClasses[classId][rdm].GetPixel(i, j).grayscale;
+                inputTmp[i * unusedDatasetByClasses[classId][rdm].width + j] = unusedDatasetByClasses[classId][rdm].GetPixel(i, j).grayscale;
             }
         }
         
         var result = MLDLLWrapper.Predict(model, inputTmp, isClassification);
         double[] r = new double[output_size + 1];
         System.Runtime.InteropServices.Marshal.Copy(result, r, 0, output_size + 1);
-        Debug.LogWarning("Prediction : " + r[1]);
-        Debug.LogWarning("Prediction : " + foldersName[r[1] < 0 ? 0 : 1]);
+        Debug.LogWarning("Prediction : " + r[1].ToString("0.00") + " -- classe = " + foldersName[r[1] < 0 ? 0 : 1]);
         MLDLLWrapper.DeleteDoubleArrayPtr(result);
     }
     #endregion
@@ -267,8 +282,8 @@ public class MLManagerTexture : MonoBehaviour
             string[] allTexturesOnFolder = Directory.GetFiles(tmp);
 
             //on ajoute la key I au dic
-            if(!datasetsByClasses.ContainsKey(i))
-                datasetsByClasses.Add(i, new Texture2D[allTexturesOnFolder.Length]);
+            if(!completeDatasetByClasses.ContainsKey(i))
+                completeDatasetByClasses.Add(i, new Texture2D[allTexturesOnFolder.Length]);
           
             //on load
             for (int j = 0; j < allTexturesOnFolder.Length; j++)
@@ -276,7 +291,7 @@ public class MLManagerTexture : MonoBehaviour
                 Texture2D t = new Texture2D(1, 1);
                 t.LoadImage(File.ReadAllBytes(allTexturesOnFolder[j]));
 
-                datasetsByClasses[i][j] = t;
+                completeDatasetByClasses[i][j] = t;
             }
         }
         
