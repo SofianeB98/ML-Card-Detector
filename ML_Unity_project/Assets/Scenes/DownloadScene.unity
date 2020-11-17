@@ -315,5 +315,5 @@ MonoBehaviour:
   folderName: Pokemon
   useDic: 1
   url: https://images.pokemontcg.io/{1}/{0}.png
-  resizeTo: {x: 64, y: 64}
+  resizeTo: {x: 16, y: 16}
   backgroundColor: {r: 1, g: 1, b: 1, a: 1}
