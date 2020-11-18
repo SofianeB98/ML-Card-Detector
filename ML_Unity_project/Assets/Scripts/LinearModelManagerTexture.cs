@@ -7,17 +7,16 @@ using Random = UnityEngine.Random;
 
 public class LinearModelManagerTexture : MonoBehaviour
 {
-    public bool createModelOnStart = true;
     private System.IntPtr model;
 
 
-    [Header("ML Parameter")] public int[] npl = new int[0];
+    [Header("ML Parameter")] 
+    public int inputSize = 256;
+    public int outputSize = 1;
     [Space(10)] public int sampleCounts = 4;
     public int epochs = 10000;
     public double alpha = 0.01;
     public bool isClassification = true;
-    private int input_size = 0;
-    private int output_size = 0;
 
 
     [Header("Train Parameter")] public int trainLoopCount = 1;
@@ -34,22 +33,12 @@ public class LinearModelManagerTexture : MonoBehaviour
     public PredictMode mode = PredictMode.Accuracy;
 
     #region Callbacks Unity
-
-    private void Start()
-    {
-        if (!createModelOnStart)
-            return;
-
-    }
-
     private void OnDestroy()
     {
-        if (!enabled)
-            return;
         if (model.Equals(IntPtr.Zero))
             return;
 
-        MLDLLWrapper.DeleteModel(model);
+        MLDLLWrapper.DeleteLinearModel(model);
         Debug.Log("Modèle détruit\n");
     }
 
@@ -72,23 +61,10 @@ public class LinearModelManagerTexture : MonoBehaviour
         //On vérifie que les input size dans npl[0]
         //soit cohérent avec la tailles des textures
         int isize = TexturesDataset.completeDatasetByClasses[0][0].width * TexturesDataset.completeDatasetByClasses[0][0].height;
-        if (npl.Length > 0)
-        {
-            if (!npl[0].Equals(isize))
-                npl[0] = isize;
-
-            input_size = npl[0];
-            output_size = npl[npl.Length - 1];
-        }
-        else
-        {
-            npl = new[] {isize, 1};
-            input_size = npl[0];
-            output_size = npl[npl.Length - 1];
-        }
+        inputSize = isize;
 
         //On crée notre model
-        model = MLDLLWrapper.CreateModel(npl, npl.Length);
+        model = MLDLLWrapper.CreateLinearModel(inputSize);
         Debug.Log("Modèle créé \n");
     }
 
@@ -163,8 +139,8 @@ public class LinearModelManagerTexture : MonoBehaviour
             }
 
             //On remplit de double[] array
-            inputs_dataset = new double[datasets.Length * input_size];
-            outputs = new double[datasets.Length * output_size];
+            inputs_dataset = new double[datasets.Length * inputSize];
+            outputs = new double[datasets.Length * outputSize];
             idx = 0;
             int idx_out = 0;
             for (int n = 0; n < datasets.Length; n++)
@@ -186,7 +162,10 @@ public class LinearModelManagerTexture : MonoBehaviour
 
             //Enfin, on entraine notre modèle N fois
             Debug.Log("On entraîne le modèle\n...");
-            MLDLLWrapper.Train(model, inputs_dataset, outputs, sampleCounts, epochs, alpha, isClassification);
+            if(isClassification)
+                MLDLLWrapper.TrainLinearModelRosenblatt(model, inputs_dataset, inputSize, sampleCounts, outputs, outputSize, epochs, alpha);
+            else
+                MLDLLWrapper.TrainLinearModelRegression(model, inputs_dataset, inputSize, sampleCounts, outputs, outputSize);
             Debug.Log("Modèle entrainé \n");
         }
     }
@@ -202,28 +181,25 @@ public class LinearModelManagerTexture : MonoBehaviour
         }
 
         Debug.Log("Prediction du dataset !\n");
-        double[] inputTmp = new double[input_size];
+        double[] inputTmp = new double[inputSize + 1];
 
         switch (mode)
         {
             case PredictMode.Random:
                 int rdm = Random.Range(0, TexturesDataset.unusedDatasetByClasses[classId].Length);
-
+                inputTmp[0] = 1.0;
                 for (int i = 0; i < TexturesDataset.unusedDatasetByClasses[classId][rdm].width; i++)
                 {
                     for (int j = 0; j < TexturesDataset.unusedDatasetByClasses[classId][rdm].height; j++)
                     {
-                        inputTmp[i * TexturesDataset.unusedDatasetByClasses[classId][rdm].width + j] =
+                        inputTmp[i * TexturesDataset.unusedDatasetByClasses[classId][rdm].width + j + 1] =
                             TexturesDataset.unusedDatasetByClasses[classId][rdm].GetPixel(i, j).grayscale;
                     }
                 }
 
-                var result = MLDLLWrapper.Predict(model, inputTmp, isClassification);
-                double[] r = new double[output_size + 1];
-                System.Runtime.InteropServices.Marshal.Copy(result, r, 0, output_size + 1);
-                Debug.LogWarning("Prediction : " + r[1].ToString("0.00") + " -- classe = " +
-                                 TextureLoader.Instance.foldersName[r[1] < 0 ? 0 : 1]);
-                MLDLLWrapper.DeleteDoubleArrayPtr(result);
+                var result = MLDLLWrapper.PredictLinearModel(model, inputTmp, inputSize, isClassification);
+                Debug.LogWarning("Prediction : " + result.ToString("0.00") + " -- classe = " +
+                                 TextureLoader.Instance.foldersName[result < 0 ? 0 : 1]);
                 break;
 
             case PredictMode.Accuracy:
@@ -235,24 +211,23 @@ public class LinearModelManagerTexture : MonoBehaviour
                     Debug.LogError("On commence à prédire la classe " + TextureLoader.Instance.foldersName[n]);
                     for (int t = 0; t < TexturesDataset.unusedDatasetByClasses[n].Length; t++)
                     {
+                        inputTmp[0] = 1.0;
+                        
                         for (int i = 0; i < TexturesDataset.unusedDatasetByClasses[n][t].width; i++)
                         {
                             for (int j = 0; j < TexturesDataset.unusedDatasetByClasses[n][t].height; j++)
                             {
-                                inputTmp[i * TexturesDataset.unusedDatasetByClasses[n][t].width + j] =
+                                inputTmp[i * TexturesDataset.unusedDatasetByClasses[n][t].width + j + 1] =
                                     TexturesDataset.unusedDatasetByClasses[n][t].GetPixel(i, j).grayscale;
                             }
                         }
-                        
-                        var res = MLDLLWrapper.Predict(model, inputTmp, isClassification);
-                        double[] resFromPtr = new double[output_size + 1];
-                        System.Runtime.InteropServices.Marshal.Copy(res, resFromPtr, 0, output_size + 1);
-                        Debug.LogWarning("Prediction : " + resFromPtr[1].ToString("0.00") + " -- classe = " +
-                                         TextureLoader.Instance.foldersName[resFromPtr[1] < 0 ? 0 : 1]);
-                        MLDLLWrapper.DeleteDoubleArrayPtr(res);
 
-                        accuracy += (TextureLoader.Instance.foldersName[resFromPtr[1] < 0 ? 0 : 1].Equals(TextureLoader.Instance.foldersName[n]))
-                            ? Mathf.Abs((float)resFromPtr[1])
+                        var res = MLDLLWrapper.PredictLinearModel(model, inputTmp, inputSize, isClassification);
+                        Debug.LogWarning("Prediction : " + res.ToString("0.00") + " -- classe = " +
+                                         TextureLoader.Instance.foldersName[res < 0 ? 0 : 1]);
+
+                        accuracy += (TextureLoader.Instance.foldersName[res < 0 ? 0 : 1].Equals(TextureLoader.Instance.foldersName[n]))
+                            ? Mathf.Abs((float)res)
                             : 0.0f;
                     }
 

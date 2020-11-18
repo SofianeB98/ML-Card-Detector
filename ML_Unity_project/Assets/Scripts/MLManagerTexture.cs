@@ -15,7 +15,6 @@ public class MLManagerTexture : MonoBehaviour
         get { return instance; }
     }
 
-    public bool createModelOnStart = true;
     private System.IntPtr model;
 
 
@@ -58,8 +57,6 @@ public class MLManagerTexture : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (!enabled)
-            return;
         if (model.Equals(IntPtr.Zero))
             return;
 
