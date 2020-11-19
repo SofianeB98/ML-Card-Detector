@@ -189,8 +189,22 @@ public class MLManagerTexture : MonoBehaviour
                     }
                 }
 
-                outputs[idx_out] = datasets[n].classe == 0 ? -1 : 1;
-                idx_out++;
+                switch (output_size)
+                {
+                    case 1:
+                    outputs[idx_out] = datasets[n].classe == 0 ? -1 : 1;
+                    idx_out++;
+                        break;
+                    
+                    case 3:
+                        outputs[idx_out] = datasets[n].classe == 0 ? 1.0 : 0.0;
+                        idx_out++;
+                        outputs[idx_out] = datasets[n].classe == 1 ? 1.0 : 0.0;
+                        idx_out++;
+                        outputs[idx_out] = datasets[n].classe == 2 ? 1.0 : 0.0;
+                        idx_out++;
+                        break;
+                }
             }
 
             sampleCounts = datasets.Length;
@@ -258,12 +272,17 @@ public class MLManagerTexture : MonoBehaviour
                         var res = MLDLLWrapper.Predict(model, inputTmp, isClassification);
                         double[] resFromPtr = new double[output_size + 1];
                         System.Runtime.InteropServices.Marshal.Copy(res, resFromPtr, 0, output_size + 1);
-                        Debug.LogWarning("Prediction : " + resFromPtr[1].ToString("0.00000000000") + " -- classe = " +
-                                         TextureLoader.Instance.foldersName[resFromPtr[1] < 0 ? 0 : 1]);
+
+                        int foldId = output_size > 2 ? (resFromPtr[1] > resFromPtr[2] && resFromPtr[1] > resFromPtr[3] ? 0 :
+                            resFromPtr[2] > resFromPtr[1] && resFromPtr[2] > resFromPtr[3] ? 1 :
+                            resFromPtr[3] > resFromPtr[2] && resFromPtr[1] < resFromPtr[3] ? 2 : -1) : (resFromPtr[1] < 0 ? 0 : 1);
+                        
+                        Debug.LogWarning("Prediction : " + (output_size == 1 ? (float)resFromPtr[1] : (float)resFromPtr[n + 1]).ToString("0.00000000000") + " -- classe = " +
+                                         TextureLoader.Instance.foldersName[foldId]);
                         MLDLLWrapper.DeleteDoubleArrayPtr(res);
 
-                        accuracy += (TextureLoader.Instance.foldersName[resFromPtr[1] < 0 ? 0 : 1].Equals(TextureLoader.Instance.foldersName[n]))
-                            ? Mathf.Abs((float)resFromPtr[1])
+                        accuracy += (TextureLoader.Instance.foldersName[foldId].Equals(TextureLoader.Instance.foldersName[n]))
+                            ? Mathf.Abs((output_size == 1 ? (float)resFromPtr[1] : (float)resFromPtr[n + 1]))
                             : 0.0f;
                     }
 

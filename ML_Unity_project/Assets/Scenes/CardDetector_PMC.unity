@@ -604,10 +604,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb8b9be1f6c1a84438c08c8fa82bc95c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  npl: 0100000001000000
+  npl: 010000002000000003000000
   sampleCounts: 4
   epochs: 1000
-  alpha: 0.01
+  alpha: 0.05
   isClassification: 1
   trainLoopCount: 1
   useDatasetAsNPercent: 0.8
@@ -630,6 +630,7 @@ MonoBehaviour:
   foldersName:
   - Magic
   - Pokemon
+  - Yugioh
 --- !u!1 &847148356
 GameObject:
   m_ObjectHideFlags: 0
