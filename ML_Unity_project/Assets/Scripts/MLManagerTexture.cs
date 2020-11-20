@@ -6,37 +6,24 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class MLManagerTexture : MonoBehaviour
+public class MLManagerTexture : MachineLearningAbstract
 {
+    #region Singleton
     private static MLManagerTexture instance;
-
     public static MLManagerTexture Instance
     {
         get { return instance; }
     }
-
-    private System.IntPtr model;
-
-
-    [Header("ML Parameter")] public int[] npl = new int[0];
-    [Space(10)] public int sampleCounts = 4;
-    public int epochs = 10000;
-    public double alpha = 0.01;
-    public bool isClassification = true;
-    private int input_size = 0;
-    private int output_size = 0;
-
+    #endregion
+    
+    [Header("PMC Parameter")] 
+    public int[] npl = new int[0];
 
     [Header("Train Parameter")] public int trainLoopCount = 1;
     [Range(0.1f, 1.0f)] public float useDatasetAsNPercent = 0.5f;
 
-
     [Header("Dataset")]
-    //public Texture2D[] datasets = new Texture2D[0];
     public TextureClass[] datasets = new TextureClass[0];
-
-    // public Dictionary<int, Texture2D[]> completeDatasetByClasses = new Dictionary<int, Texture2D[]>();
-    // private Dictionary<int, Texture2D[]> unusedDatasetByClasses = new Dictionary<int, Texture2D[]>();
     private double[] inputs_dataset = new double[0];
     private double[] outputs = new double[0];
 
@@ -60,24 +47,22 @@ public class MLManagerTexture : MonoBehaviour
         if (model.Equals(IntPtr.Zero))
             return;
 
-        MLDLLWrapper.DeleteModel(model);
-        Debug.Log("Modèle détruit\n");
+        DeleteModel();
     }
 
     #endregion
 
     #region Machine Learning Functions
 
-    public void CreateModel()
+    public override void CreateModel()
     {
         if (!enabled)
             return;
 
         if (!model.Equals(IntPtr.Zero))
         {
-            Debug.LogError("You trying to created an other model, we delete the old model before");
-            MLDLLWrapper.DeleteModel(model);
-            Debug.Log("Modèle détruit\n");
+            Debug.LogWarning("You trying to created an other model, we delete the old model before");
+            DeleteModel();
         }
 
         //On vérifie que les input size dans npl[0]
@@ -103,7 +88,7 @@ public class MLManagerTexture : MonoBehaviour
         Debug.Log("Modèle créé \n");
     }
 
-    public void TrainModel()
+    public override void TrainModel()
     {
         if (!enabled)
             return;
@@ -189,22 +174,45 @@ public class MLManagerTexture : MonoBehaviour
                     }
                 }
 
-                switch (output_size)
+                if (output_size == 1)
                 {
-                    case 1:
                     outputs[idx_out] = datasets[n].classe == 0 ? -1 : 1;
                     idx_out++;
-                        break;
-                    
-                    case 3:
-                        outputs[idx_out] = datasets[n].classe == 0 ? 1.0 : 0.0;
-                        idx_out++;
-                        outputs[idx_out] = datasets[n].classe == 1 ? 1.0 : 0.0;
-                        idx_out++;
-                        outputs[idx_out] = datasets[n].classe == 2 ? 1.0 : 0.0;
-                        idx_out++;
-                        break;
                 }
+                else
+                {
+                    //double[] tmpOut = new double[TextureLoader.Instance.foldersName.Length];
+                    for (int i = 0; i < output_size; i++)
+                    {
+                        if (i == datasets[n].classe)
+                            outputs[idx_out] = 1.0;
+                        else
+                            outputs[idx_out] = 0.0;
+
+                        idx_out++;
+                        // if (i == datasets[n].classe)
+                        //     tmpOut[i] = 1.0;
+                        // else
+                        //     tmpOut[i] = 0.0;
+                    }
+                }
+                
+                // switch (output_size)
+                // {
+                //     case 1:
+                //     outputs[idx_out] = datasets[n].classe == 0 ? -1 : 1;
+                //     idx_out++;
+                //         break;
+                //     
+                //     case 3:
+                //         outputs[idx_out] = datasets[n].classe == 0 ? 1.0 : 0.0;
+                //         idx_out++;
+                //         outputs[idx_out] = datasets[n].classe == 1 ? 1.0 : 0.0;
+                //         idx_out++;
+                //         outputs[idx_out] = datasets[n].classe == 2 ? 1.0 : 0.0;
+                //         idx_out++;
+                //         break;
+                // }
             }
 
             sampleCounts = datasets.Length;
@@ -216,7 +224,7 @@ public class MLManagerTexture : MonoBehaviour
         }
     }
 
-    public void Predict()
+    public override void Predict()
     {
         if (!enabled)
             return;
@@ -273,9 +281,11 @@ public class MLManagerTexture : MonoBehaviour
                         double[] resFromPtr = new double[output_size + 1];
                         System.Runtime.InteropServices.Marshal.Copy(res, resFromPtr, 0, output_size + 1);
 
-                        int foldId = output_size > 2 ? (resFromPtr[1] > resFromPtr[2] && resFromPtr[1] > resFromPtr[3] ? 0 :
-                            resFromPtr[2] > resFromPtr[1] && resFromPtr[2] > resFromPtr[3] ? 1 :
-                            resFromPtr[3] > resFromPtr[2] && resFromPtr[1] < resFromPtr[3] ? 2 : -1) : (resFromPtr[1] < 0 ? 0 : 1);
+                        // int foldId = output_size > 2 ? (resFromPtr[1] > resFromPtr[2] && resFromPtr[1] > resFromPtr[3] ? 0 :
+                        //     resFromPtr[2] > resFromPtr[1] && resFromPtr[2] > resFromPtr[3] ? 1 :
+                        //     resFromPtr[3] > resFromPtr[2] && resFromPtr[1] < resFromPtr[3] ? 2 : -1) : (resFromPtr[1] < 0 ? 0 : 1);
+
+                        int foldId = GetIndexOfHigherValueInArray(resFromPtr);
                         
                         Debug.LogWarning("Prediction : " + (output_size == 1 ? (float)resFromPtr[1] : (float)resFromPtr[n + 1]).ToString("0.00000000000") + " -- classe = " +
                                          TextureLoader.Instance.foldersName[foldId]);
@@ -298,5 +308,28 @@ public class MLManagerTexture : MonoBehaviour
         }
     }
 
+    public override void DeleteModel()
+    {
+        MLDLLWrapper.DeleteModel(model);
+        Debug.Log("Modèle détruit\n");
+    }
+
     #endregion
+
+    private int GetIndexOfHigherValueInArray(double[] ar)
+    {
+        int idx = 0;
+        double val = 0;
+
+        for (int i = 1; i < ar.Length; i++)
+        {
+            if(ar[i] < val)
+                continue;
+
+            idx = i;
+            val = ar[i];
+        }
+
+        return idx - 1;
+    }
 }
