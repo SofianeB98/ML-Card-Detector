@@ -19,9 +19,6 @@ public class MLManagerTexture : MachineLearningAbstract
     [Header("PMC Parameter")] 
     public int[] npl = new int[0];
 
-    [Header("Train Parameter")] public int trainLoopCount = 1;
-    [Range(0.1f, 1.0f)] public float useDatasetAsNPercent = 0.5f;
-
     [Header("Dataset")]
     public TextureClass[] datasets = new TextureClass[0];
     private double[] inputs_dataset = new double[0];
@@ -311,6 +308,7 @@ public class MLManagerTexture : MachineLearningAbstract
     public override void DeleteModel()
     {
         MLDLLWrapper.DeleteModel(model);
+        model = IntPtr.Zero;
         Debug.Log("Modèle détruit\n");
     }
 

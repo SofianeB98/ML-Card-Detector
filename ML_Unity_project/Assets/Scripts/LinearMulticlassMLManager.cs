@@ -58,6 +58,7 @@ public class LinearMulticlassMLManager : MonoBehaviour
                 return;
 
             MLDLLWrapper.DeleteLinearModel(models[i]);
+            models[i] = IntPtr.Zero;
             Debug.Log("Modèle détruit\n");
         }
     }

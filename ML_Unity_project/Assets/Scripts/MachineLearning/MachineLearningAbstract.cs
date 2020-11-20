@@ -11,8 +11,12 @@ public abstract class MachineLearningAbstract : MonoBehaviour
     public int epochs = 1000;
     public double alpha = 0.01;
     public bool isClassification = true;
-    protected int input_size = 0;
-    protected int output_size = 0;
+    public int input_size = 0;
+    public int output_size = 0;
+    
+    [Header("Train Parameter")] 
+    public int trainLoopCount = 1;
+    [Range(0.1f, 1.0f)] public float useDatasetAsNPercent = 0.5f;
     
     public abstract void CreateModel();
     public abstract void TrainModel();

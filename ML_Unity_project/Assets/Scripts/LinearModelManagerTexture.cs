@@ -5,24 +5,8 @@ using System.IO;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class LinearModelManagerTexture : MonoBehaviour
+public class LinearModelManagerTexture : MachineLearningAbstract
 {
-    private System.IntPtr model;
-
-
-    [Header("ML Parameter")] 
-    public int inputSize = 256;
-    public int outputSize = 1;
-    [Space(10)] public int sampleCounts = 4;
-    public int epochs = 10000;
-    public double alpha = 0.01;
-    public bool isClassification = true;
-
-
-    [Header("Train Parameter")] public int trainLoopCount = 1;
-    [Range(0.1f, 1.0f)] public float useDatasetAsNPercent = 0.5f;
-
-
     [Header("Dataset")]
     //public Texture2D[] datasets = new Texture2D[0];
     public TextureClass[] datasets = new TextureClass[0];
@@ -35,18 +19,14 @@ public class LinearModelManagerTexture : MonoBehaviour
     #region Callbacks Unity
     private void OnDestroy()
     {
-        if (model.Equals(IntPtr.Zero))
-            return;
-
-        MLDLLWrapper.DeleteLinearModel(model);
-        Debug.Log("Modèle détruit\n");
+        DeleteModel();
     }
 
     #endregion
 
     #region Machine Learning Functions
 
-    public void CreateModel()
+    public override void CreateModel()
     {
         if (!enabled)
             return;
@@ -61,14 +41,14 @@ public class LinearModelManagerTexture : MonoBehaviour
         //On vérifie que les input size dans npl[0]
         //soit cohérent avec la tailles des textures
         int isize = TexturesDataset.completeDatasetByClasses[0][0].width * TexturesDataset.completeDatasetByClasses[0][0].height;
-        inputSize = isize;
+        input_size = isize;
 
         //On crée notre model
-        model = MLDLLWrapper.CreateLinearModel(inputSize);
+        model = MLDLLWrapper.CreateLinearModel(input_size);
         Debug.Log("Modèle créé \n");
     }
 
-    public void TrainModel()
+    public override void TrainModel()
     {
         if (!enabled)
             return;
@@ -139,8 +119,8 @@ public class LinearModelManagerTexture : MonoBehaviour
             }
 
             //On remplit de double[] array
-            inputs_dataset = new double[datasets.Length * inputSize];
-            outputs = new double[datasets.Length * outputSize];
+            inputs_dataset = new double[datasets.Length * input_size];
+            outputs = new double[datasets.Length * output_size];
             idx = 0;
             int idx_out = 0;
             for (int n = 0; n < datasets.Length; n++)
@@ -163,14 +143,14 @@ public class LinearModelManagerTexture : MonoBehaviour
             //Enfin, on entraine notre modèle N fois
             Debug.Log("On entraîne le modèle\n...");
             if(isClassification)
-                MLDLLWrapper.TrainLinearModelRosenblatt(model, inputs_dataset, inputSize, sampleCounts, outputs, outputSize, epochs, alpha);
+                MLDLLWrapper.TrainLinearModelRosenblatt(model, inputs_dataset, input_size, sampleCounts, outputs, output_size, epochs, alpha);
             else
-                MLDLLWrapper.TrainLinearModelRegression(model, inputs_dataset, inputSize, sampleCounts, outputs, outputSize);
+                MLDLLWrapper.TrainLinearModelRegression(model, inputs_dataset, input_size, sampleCounts, outputs, output_size);
             Debug.Log("Modèle entrainé \n");
         }
     }
 
-    public void Predict()
+    public override void Predict()
     {
         if (!enabled)
             return;
@@ -181,7 +161,7 @@ public class LinearModelManagerTexture : MonoBehaviour
         }
 
         Debug.Log("Prediction du dataset !\n");
-        double[] inputTmp = new double[inputSize + 1];
+        double[] inputTmp = new double[input_size + 1];
 
         switch (mode)
         {
@@ -197,7 +177,7 @@ public class LinearModelManagerTexture : MonoBehaviour
                     }
                 }
 
-                var result = MLDLLWrapper.PredictLinearModel(model, inputTmp, inputSize, isClassification);
+                var result = MLDLLWrapper.PredictLinearModel(model, inputTmp, input_size, isClassification);
                 Debug.LogWarning("Prediction : " + result.ToString("0.00") + " -- classe = " +
                                  TextureLoader.Instance.foldersName[result < 0 ? 0 : 1]);
                 break;
@@ -222,7 +202,7 @@ public class LinearModelManagerTexture : MonoBehaviour
                             }
                         }
 
-                        var res = MLDLLWrapper.PredictLinearModel(model, inputTmp, inputSize, isClassification);
+                        var res = MLDLLWrapper.PredictLinearModel(model, inputTmp, input_size, isClassification);
                         Debug.LogWarning("Prediction : " + res.ToString("0.00") + " -- classe = " +
                                          TextureLoader.Instance.foldersName[res < 0 ? 0 : 1]);
 
@@ -241,6 +221,16 @@ public class LinearModelManagerTexture : MonoBehaviour
                 Debug.LogWarning(string.Format("L'accuracy total est de {0}", finalAccuracy));
                 break;
         }
+    }
+
+    public override void DeleteModel()
+    {
+        if (model.Equals(IntPtr.Zero))
+            return;
+        
+        MLDLLWrapper.DeleteLinearModel(model);
+        model = IntPtr.Zero;
+        Debug.Log("Modèle détruit\n");
     }
 
     #endregion

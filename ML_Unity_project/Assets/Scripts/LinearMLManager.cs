@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LinearMLManager : MonoBehaviour
+public class LinearMLManager : MachineLearningAbstract
 {
     private static LinearMLManager instance;
 
@@ -12,16 +12,8 @@ public class LinearMLManager : MonoBehaviour
         get { return instance; }
     }
     
-    [Header("ML Parameter")] 
     public bool createModelOnStart = true;
-    public int sampleCounts = 4;
-    public int epochs = 10000;
-    public double alpha = 0.01;
-    public bool isClassification = true;
-    public int input_size = 0;
-    public int output_size = 0;
-    private System.IntPtr model;
-    
+
     [Header("Dataset")] 
     public Transform[] dataset = new Transform[0];
     private double[] inputs_dataset = new double[0];
@@ -133,16 +125,10 @@ public class LinearMLManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (!enabled)
-            return;
-        if (model.Equals(IntPtr.Zero))
-            return;
-        
-        MLDLLWrapper.DeleteLinearModel(model);
-        Debug.Log("Modèle détruit\n");
+        DeleteModel();
     }
 
-    public void CreateModel()
+    public override void CreateModel()
     {
         if (!enabled)
             return;
@@ -231,7 +217,7 @@ public class LinearMLManager : MonoBehaviour
         Debug.Log("Tableau d'input initialisé depuis les inputs bruts\n");
     }
     
-    public void TrainModel()
+    public override void TrainModel()
     {
         if (!enabled)
             return;
@@ -249,7 +235,7 @@ public class LinearMLManager : MonoBehaviour
         Debug.Log("Modèle entrainé \n");
     }
 
-    public void Predict()
+    public override void Predict()
     {
         if (!enabled)
             return;
@@ -286,5 +272,15 @@ public class LinearMLManager : MonoBehaviour
 
             //MLDLLWrapper.DeleteDoubleArrayPtr(result);
         }
+    }
+
+    public override void DeleteModel()
+    {
+        if (model.Equals(IntPtr.Zero))
+            return;
+        
+        MLDLLWrapper.DeleteLinearModel(model);
+        model = IntPtr.Zero;
+        Debug.Log("Modèle détruit\n");
     }
 }

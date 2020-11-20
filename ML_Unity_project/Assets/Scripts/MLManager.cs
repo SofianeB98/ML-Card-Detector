@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MLManager : MonoBehaviour
+public class MLManager : MachineLearningAbstract
 {
     private static MLManager instance;
 
@@ -12,17 +12,11 @@ public class MLManager : MonoBehaviour
         get { return instance; }
     }
     
-    [Header("ML Parameter")] 
-    public bool createModelOnStart = true;
+    [Header("PMC Parameter")] 
     public int[] npl = new int[0];
+
     [Space(10)]
-    public int sampleCounts = 4;
-    public int epochs = 10000;
-    public double alpha = 0.01;
-    public bool isClassification = true;
-    private int input_size = 0;
-    private int output_size = 0;
-    private System.IntPtr model;
+    public bool createModelOnStart = true;
     
     [Header("Dataset")] 
     public Transform[] dataset = new Transform[0];
@@ -31,7 +25,6 @@ public class MLManager : MonoBehaviour
 
     [Header("Inputs population")] 
     public Transform[] inputs = new Transform[0];
-    //private double[] inputsTest = new double[0];
 
     private void Awake()
     {
@@ -49,102 +42,16 @@ public class MLManager : MonoBehaviour
         if (!createModelOnStart)
             return;
         
-        if (!model.Equals(IntPtr.Zero))
-        {
-            Debug.LogError("You trying to created an other model, we delete the old model before");
-            MLDLLWrapper.DeleteModel(model);
-            Debug.Log("Modèle détruit\n");
-        }
-        
-        model = MLDLLWrapper.CreateModel(npl, npl.Length);
-        Debug.Log("Modèle créé \n");
-
-        input_size = npl[0];
-        output_size = npl[npl.Length - 1];
-
-        inputs_dataset = new double[dataset.Length * input_size];
-        outputs = new double[dataset.Length * output_size];
-
-        int idx = 0;
-        int idx_out = 0;
-        foreach (var tr in dataset)
-        {
-            Vector3 p = tr.position;
-            if (input_size == 1)
-            {
-                inputs_dataset[idx] = p.x;
-                idx++;
-            }
-            else
-            {
-                inputs_dataset[idx] = p.x;
-                idx++;
-                inputs_dataset[idx] = p.z;
-                idx++;
-            }
-
-            switch (output_size)
-            {
-                case 0:
-                case 1:
-                    outputs[idx_out] = p.y;
-                    idx_out++;
-                    break;
-                
-                case 2:
-                    break;
-                
-                case 3:
-                    if (p.y.Equals(1))
-                    {
-                        outputs[idx_out] = 1.0;
-                        idx_out++;
-                        outputs[idx_out] = 0.0;
-                        idx_out++;
-                        outputs[idx_out] = 0.0;
-                        idx_out++;
-                    }
-                    
-                    if (p.y.Equals(2))
-                    {
-                        outputs[idx_out] = 0.0;
-                        idx_out++;
-                        outputs[idx_out] = 1.0;
-                        idx_out++;
-                        outputs[idx_out] = 0.0;
-                        idx_out++;
-                    }
-                    
-                    if (p.y.Equals(3))
-                    {
-                        outputs[idx_out] = 0.0;
-                        idx_out++;
-                        outputs[idx_out] = 0.0;
-                        idx_out++;
-                        outputs[idx_out] = 1.0;
-                        idx_out++;
-                    }
-                    break;
-            }
-
-        }
-
-
+        CreateModel();
         Debug.Log("Tableau d'input initialisé depuis les inputs bruts\n");
     }
 
     private void OnDestroy()
     {
-        if (!enabled)
-            return;
-        if (model.Equals(IntPtr.Zero))
-            return;
-        
-        MLDLLWrapper.DeleteModel(model);
-        Debug.Log("Modèle détruit\n");
+        DeleteModel();
     }
 
-    public void CreateModel()
+    public override void CreateModel()
     {
         if (!enabled)
             return;
@@ -231,7 +138,7 @@ public class MLManager : MonoBehaviour
         Debug.Log("Tableau d'input initialisé depuis les inputs bruts\n");
     }
     
-    public void TrainModel()
+    public override void TrainModel()
     {
         if (!enabled)
             return;
@@ -246,7 +153,7 @@ public class MLManager : MonoBehaviour
         Debug.Log("Modèle entrainé \n");
     }
 
-    public void Predict()
+    public override void Predict()
     {
         if (!enabled)
             return;
@@ -303,5 +210,14 @@ public class MLManager : MonoBehaviour
                 MLDLLWrapper.DeleteDoubleArrayPtr(result);
             }
         }
+    }
+
+    public override void DeleteModel()
+    {
+        if (model.Equals(IntPtr.Zero))
+            return;
+        
+        MLDLLWrapper.DeleteModel(model);
+        Debug.Log("Modèle détruit\n");
     }
 }
