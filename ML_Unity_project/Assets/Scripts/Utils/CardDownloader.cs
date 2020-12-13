@@ -94,7 +94,7 @@ public class CardDownloader : MonoBehaviour
 
                         if (!File.Exists(pathReal))
                         {
-                            var resizedImg = ResizePicture(request.downloadHandler.data);
+                            var resizedImg = ResizePicture(request.downloadHandler.data, resizeTo, backgroundColor);
                             File.WriteAllBytes(pathReal + ".jpg", resizedImg);
                             //Debug.Log("Fichier telechargé au nom de : " + cName);
                         }
@@ -125,7 +125,7 @@ public class CardDownloader : MonoBehaviour
 
                             if (!File.Exists(pathReal))
                             {
-                                var resizedImg = ResizePicture(request.downloadHandler.data);
+                                var resizedImg = ResizePicture(request.downloadHandler.data, resizeTo, backgroundColor);
                                 File.WriteAllBytes(pathReal + ".jpg", resizedImg);
                                 //Debug.Log("Fichier telechargé au nom de : " + cName);
                             }
@@ -158,7 +158,7 @@ public class CardDownloader : MonoBehaviour
 
                     if (!File.Exists(pathReal))
                     {
-                        var resizedImg = ResizePicture(request.downloadHandler.data);
+                        var resizedImg = ResizePicture(request.downloadHandler.data, resizeTo, backgroundColor);
                         File.WriteAllBytes(pathReal + ".jpg", resizedImg);
                         //Debug.Log("Fichier telechargé au nom de : " + cName);
                     }
@@ -173,7 +173,8 @@ public class CardDownloader : MonoBehaviour
         yield break;
     }
 
-    private byte[] ResizePicture(byte[] b)
+    
+    public static byte[] ResizePicture(byte[] b, Vector2Int resizeTo, Color backgroundColor)
     {
         Texture2D baseImg = new Texture2D(0, 0);
         baseImg.LoadImage(b);

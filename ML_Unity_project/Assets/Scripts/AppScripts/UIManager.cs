@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using SFB;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,9 +21,14 @@ public class UIManager : MonoBehaviour
 
     [Header("Utils UI Element")] 
     public Image selectedCard;
+    private Texture2D textureSelected;
     public Text accuracyText;
     public Text answerText;
     public Text messageText;
+    
+    [Header("Load Card Parameter")]
+    public Vector2Int resizeTo = new Vector2Int(256, 256);
+    public Color backgroundColor = Color.white;
     
     public void UpdateSelectedModel(int model)
     {
@@ -161,6 +168,10 @@ public class UIManager : MonoBehaviour
     
     public void PredictSelection()
     {
+        var imgResized = CardDownloader.ResizePicture(textureSelected.EncodeToJPG(), resizeTo, backgroundColor);
+        Texture2D texResized = new Texture2D(0,0);
+        texResized.LoadImage(imgResized);
+        
         switch (selectedModel)
         {
             case ActiveMachineLearningEnum.NONE:
@@ -255,6 +266,18 @@ public class UIManager : MonoBehaviour
     
     public void OpenBrowserToChooseCard()
     {
+        var extensions = new [] {
+            new ExtensionFilter("Image Files", "png", "jpg", "jpeg" )
+        };
+        var path = StandaloneFileBrowser.OpenFilePanel("Choose a card", "", extensions, false);
+
+        if (path.Length <= 0)
+            return;
         
+        Debug.Log($"Selected path = {path[0]}"); 
+        textureSelected = new Texture2D(0,0);
+        textureSelected.LoadImage(File.ReadAllBytes(path[0]));
+
+        selectedCard.sprite = Sprite.Create(textureSelected, new Rect(0, 0, textureSelected.width, textureSelected.height), Vector2.one * 0.5f);
     }
 }
