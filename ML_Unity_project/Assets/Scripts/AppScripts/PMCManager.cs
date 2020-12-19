@@ -118,15 +118,15 @@ public class PMCManager : MonoBehaviour
                     idx++;
                 }
 
-                int tmp = 0;
-                for (int j = 0; j < TexturesDataset.completeDatasetByClasses[i].Length; j++)
-                {
-                    if (randomIndex.Contains(j))
-                        continue;
-
-                    TexturesDataset.unusedDatasetByClasses[i][tmp] = TexturesDataset.completeDatasetByClasses[i][j];
-                    tmp++;
-                }
+                // int tmp = 0;
+                // for (int j = 0; j < TexturesDataset.completeDatasetByClasses[i].Length; j++)
+                // {
+                //     if (randomIndex.Contains(j))
+                //         continue;
+                //
+                //     TexturesDataset.unusedDatasetByClasses[i][tmp] = TexturesDataset.completeDatasetByClasses[i][j];
+                //     tmp++;
+                // }
             }
 
             //On remplit de double[] array
