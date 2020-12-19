@@ -29,17 +29,28 @@ public class UIManager : MonoBehaviour
     [Header("Load Card Parameter")]
     public Vector2Int resizeTo = new Vector2Int(256, 256);
     public Color backgroundColor = Color.white;
-    
+
+    private void Start()
+    {
+        UpdateSelectedModel(0);
+        MLParameters.IsClassification = true;
+    }
+
     public void UpdateSelectedModel(int model)
     {
         //Je delete l'ancien model
+        if (!MLParameters.model.Equals(IntPtr.Zero))
+        {
+            DeleteModel();
+            MLParameters.model = IntPtr.Zero;
+        }
         
         //Je set la selection
         selectedModel = (ActiveMachineLearningEnum) model;
         
         //J'active le npl uniquement si c'est un PMC
         nplField.transform.parent.gameObject.SetActive(selectedModel == ActiveMachineLearningEnum.PMC_MODEL);
-        
+
         //J'effectuer les action necessaire
         switch (selectedModel)
         {
@@ -116,7 +127,10 @@ public class UIManager : MonoBehaviour
         MLParameters.NPL = new int[tmpNpl.Length];
         Array.Copy(tmpNpl, MLParameters.NPL, tmpNpl.Length);
 
-        Debug.Log($"NPL a été set à {tmpNpl}");
+        for (int i = 0; i < tmpNpl.Length; i++)
+        {
+            Debug.Log($"NPL {i} a été set à {tmpNpl[i]}");
+        }
     }
     #endregion
     
@@ -124,18 +138,25 @@ public class UIManager : MonoBehaviour
 
     public void CreateModel()
     {
+        if(!MLParameters.model.Equals(IntPtr.Zero))
+            DeleteModel();
+        
         switch (selectedModel)
         {
             case ActiveMachineLearningEnum.NONE:
+                Debug.LogWarning("Aucun model n'est selectionné");
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
+                //
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                PMCManager.Instance.CreateModel();
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
+                //
                 break;
      
             
@@ -146,15 +167,23 @@ public class UIManager : MonoBehaviour
     
     public void TrainModel()
     {
+        if (MLParameters.model.Equals(IntPtr.Zero))
+        {
+            Debug.LogWarning("Vous essayez d'entrainer un modèle inexistant...");
+            return;
+        }
+            
         switch (selectedModel)
         {
             case ActiveMachineLearningEnum.NONE:
+                //
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                PMCManager.Instance.TrainModel();
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
@@ -168,9 +197,24 @@ public class UIManager : MonoBehaviour
     
     public void PredictSelection()
     {
+        if (MLParameters.model.Equals(IntPtr.Zero))
+        {
+            Debug.LogWarning("Pas de modèle crée, on ne peut rien prédire !");
+            return;
+        }
+
+        if (textureSelected.width <= 1)
+        {
+            Debug.LogWarning("Aucune Carte n'a été selectionnée..");
+            return;
+        }
+        
         var imgResized = CardDownloader.ResizePicture(textureSelected.EncodeToJPG(), resizeTo, backgroundColor);
         Texture2D texResized = new Texture2D(0,0);
         texResized.LoadImage(imgResized);
+
+        double accuracy = 0.0;
+        string prediction = "";
         
         switch (selectedModel)
         {
@@ -181,6 +225,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                PMCManager.Instance.Predict(texResized, out accuracy, out prediction);
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
@@ -190,6 +235,9 @@ public class UIManager : MonoBehaviour
             default:
                 break;
         }
+
+        this.accuracyText.text = "Accuracy = " + accuracy.ToString("0.00000");
+        this.answerText.text = "Prediction = " + prediction;
     }
 
     public void DeleteModel()
@@ -203,6 +251,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                PMCManager.Instance.DeleteModel();
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
