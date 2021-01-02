@@ -5,7 +5,7 @@ public class MLParameters : MonoBehaviour
 {
     public static IntPtr model = IntPtr.Zero;
     
-    
+    public static IntPtr[] models = new IntPtr[0];
 
     public static int SampleCounts = 4;
     public static int Epochs = 1000;
@@ -35,21 +35,4 @@ public class MLParameters : MonoBehaviour
 
         return idx - 1;
     }
-    
-    // ------------------------------------------------------------------------------------
-    
-    [Header("ML Parameter")] 
-    public int sampleCounts = 4;
-    public int epochs = 1000;
-    public double alpha = 0.01;
-    public bool isClassification = true;
-    public int input_size = 0;
-    public int output_size = 0;
-    
-    [Header("PMC Parameter")] 
-    public int[] npl = new int[0];
-    
-    [Header("Train Parameter")] 
-    public int trainLoopCount = 1;
-    [Range(0.1f, 1.0f)] public float useDatasetAsNPercent = 0.5f;
 }

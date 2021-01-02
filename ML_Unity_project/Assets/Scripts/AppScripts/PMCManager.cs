@@ -9,6 +9,7 @@ public class PMCManager : MonoBehaviour
     private static PMCManager instance;
     public static PMCManager Instance => PMCManager.instance;
 
+    //Peut etre placer dans la fonction de train
     public TextureClass[] datasets = new TextureClass[0];
     
     private void Awake()
