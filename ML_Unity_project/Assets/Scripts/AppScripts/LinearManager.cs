@@ -204,5 +204,12 @@ public class LinearManager : MonoBehaviour
         Debug.Log("Modèles détruit\n");
     }
 
+    public void SaveModel()
+    {
+        
+        
+        //save
+    }
+    
     #endregion
 }

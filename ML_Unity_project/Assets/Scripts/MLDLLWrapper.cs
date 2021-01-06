@@ -45,6 +45,9 @@ public static class MLDLLWrapper
     public static extern void Train(System.IntPtr model, double[] allInputs, double[] allExpectedOutputs,
     int sampleCount, int epochs, double alpha, bool isClassification);
 
+    [DllImport("MLDLL", EntryPoint = "getWeightValueAt")]
+    public static extern double GetWeightValueAt(System.IntPtr model, int l, int i, int j);
+    
     [DllImport("MLDLL", EntryPoint = "delete_model")]
     public static extern void DeleteModel(System.IntPtr model);
     #endregion

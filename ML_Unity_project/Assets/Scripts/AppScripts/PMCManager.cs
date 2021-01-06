@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -230,5 +230,63 @@ public class PMCManager : MonoBehaviour
         Debug.Log("Modèle détruit\n");
     }
 
+    public void SaveModel()
+    {
+        MLP mlp = new MLP();
+        mlp.W = new List<ListOfListDouble>();
+        
+        var layer_counts = MLParameters.NPL.Length;
+        
+        for (int l = 0; l < layer_counts; ++l)
+        {
+            ListOfListDouble a = new ListOfListDouble();
+            a.Wi = new List<ListOfDouble>();
+            
+            if (l == 0)
+            {
+                ListOfDouble b = new ListOfDouble();
+                b.Wj = new List<double>();
+                b.Wj.Add(1.0);
+                a.Wi.Add(b);
+            }
+            else
+            {
+                for (int i = 0; i < MLParameters.NPL[l - 1] + 1; ++i)
+                {
+                    ListOfDouble b = new ListOfDouble();
+                    b.Wj = new List<double>();
+
+                    for (int j = 0; j < MLParameters.NPL[l] + 1; ++j)
+                    {
+                        b.Wj.Add(Random.value);
+                    }
+
+                    a.Wi.Add(b);
+                }
+            }
+
+            mlp.W.Add(a);
+        }
+        
+        for (int l = 0; l < mlp.W.Count; l++)
+            for (int i = 0; i < mlp.W[l].Wi.Count; i++)
+                for (int j = 0; j < mlp.W[l].Wi[i].Wj.Count; j++)
+                    mlp.W[l].Wi[i].Wj[j] = MLDLLWrapper.GetWeightValueAt(MLParameters.model, l, i, j);
+        
+        //save
+        var str = JsonUtility.ToJson(mlp, true);
+        var path = Path.Combine(Application.dataPath, "SavedModels");
+        path = Path.Combine(path, "pmcCard.json");
+
+        using (FileStream f = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+        {
+            File.WriteAllText(path,str);
+        }
+        
+        mlp.W.Clear();
+        
+        Debug.Log("Modele sauvegarde !!");
+    }
+    
     #endregion
 }

@@ -447,6 +447,11 @@ extern "C"
 		}
 	}
 
+	__declspec(dllexport) double getWeightValueAt(MLP* model, int l, int i, int j)
+	{
+		return model->w[l][i][j];
+	}
+	
 	__declspec(dllexport) void delete_model(MLP* model)
 	{
 		model->d.clear();

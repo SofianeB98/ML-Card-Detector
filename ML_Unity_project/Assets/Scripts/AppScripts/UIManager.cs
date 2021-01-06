@@ -278,6 +278,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                PMCManager.Instance.SaveModel();
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
