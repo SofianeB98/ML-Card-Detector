@@ -452,7 +452,7 @@ extern "C"
 		return model->w[l][i][j];
 	}
 
-	__declspec(dllexport) void SetWeightValueAt(MLP* model, int l, int i, int j, double val)
+	__declspec(dllexport) void setWeightValueAt(MLP* model, int l, int i, int j, double val)
 	{
 		model->w[l][i][j] = val;
 	}

@@ -234,6 +234,7 @@ public class PMCManager : MonoBehaviour
     {
         MLP mlp = new MLP();
         mlp.W = new List<ListOfListDouble>();
+        mlp.NPL = MLParameters.NPL;
         
         var layer_counts = MLParameters.NPL.Length;
         
@@ -278,12 +279,9 @@ public class PMCManager : MonoBehaviour
         var path = Path.Combine(Application.dataPath, "SavedModels");
         path = Path.Combine(path, "pmcCard.json");
 
-        using (FileStream f = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-        {
-            File.WriteAllText(path,str);
-        }
-        
-        mlp.W.Clear();
+       File.WriteAllText(path,str);
+
+       mlp.W.Clear();
         
         Debug.Log("Modele sauvegarde !!");
     }
@@ -292,6 +290,13 @@ public class PMCManager : MonoBehaviour
     {
         var str = File.ReadAllText(path);
         var loadedModel = JsonUtility.FromJson<MLP>(str);
+        
+        if (MLParameters.model.Equals(System.IntPtr.Zero))
+        {
+            MLParameters.NPL = loadedModel.NPL;
+            MLParameters.IsClassification = true;
+            CreateModel();
+        }
         
         for (int l = 0; l < loadedModel.W.Count; l++)
             for (int i = 0; i < loadedModel.W[l].Wi.Count; i++)

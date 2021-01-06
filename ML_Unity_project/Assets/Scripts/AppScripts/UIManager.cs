@@ -301,6 +301,18 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                var extensions = new [] {
+                    new ExtensionFilter("Json Files", "json")
+                };
+                var path = StandaloneFileBrowser.OpenFilePanel("Choose PMC Model", Application.dataPath, extensions, false);
+
+                if (path.Length <= 0)
+                    return;
+        
+                Debug.Log($"Selected path = {path[0]}"); 
+                
+                PMCManager.Instance.LoadModel(path[0]);
+                
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:

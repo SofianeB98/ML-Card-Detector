@@ -6,6 +6,7 @@ using UnityEngine;
 public class MLP
 {
     [SerializeField] public List<ListOfListDouble> W;
+    [SerializeField] public int[] NPL;
 }
 
 [System.Serializable]
