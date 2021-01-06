@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -160,13 +162,14 @@ public class LinearManager : MonoBehaviour
         }
 
         Debug.Log("Prediction de la carte selectionnée !\n");
-        double[] inputTmp = new double[MLParameters.Input_size];
+        double[] inputTmp = new double[MLParameters.Input_size + 1];
 
+        inputTmp[0] = 1.0;
         for (int i = 0; i < card.width; i++)
         {
             for (int j = 0; j < card.height; j++)
             {
-                inputTmp[i * card.width + j] = card.GetPixel(i, j).grayscale;
+                inputTmp[i * card.width + j + 1] = card.GetPixel(i, j).grayscale;
             }
         }
 
@@ -206,10 +209,60 @@ public class LinearManager : MonoBehaviour
 
     public void SaveModel()
     {
-        
+        MultiLinearModel linear = new MultiLinearModel();
+        for (int i = 0; i < MLParameters.models.Length; i++)
+        {
+            ListOfDouble tmp = new ListOfDouble();
+            tmp.Wj = new List<double>();
+            
+            double[] resFromPtr = new double[MLParameters.Input_size + 1];
+            System.Runtime.InteropServices.Marshal.Copy(MLParameters.models[i], resFromPtr, 0, resFromPtr.Length);
+
+            tmp.Wj = resFromPtr.ToList();
+            linear.models.Add(tmp);
+        }
         
         //save
+        var str = JsonUtility.ToJson(linear, true);
+        var path = Path.Combine(Application.dataPath, "SavedModels");
+        path = Path.Combine(path, "pmcCard.json");
+
+        File.WriteAllText(path,str);
+
+        linear.models.Clear();
+        
+        Debug.Log("Modele sauvegarde !!");
     }
-    
+
+    public void LoadModel(string path)
+    {
+        var str = File.ReadAllText(path);
+        var loadedModel = JsonUtility.FromJson<MultiLinearModel>(str);
+        
+        if (MLParameters.models.Length <= 0)
+        {
+            MLParameters.IsClassification = true;
+            CreateModel();
+        }
+
+        if (MLParameters.models.Length > loadedModel.models.Count)
+        {
+            DeleteModel();
+            MLParameters.models = new IntPtr[loadedModel.models.Count];
+            for (int i = 0; i < loadedModel.models.Count; i++)
+            {
+                MLParameters.models[i] = MLDLLWrapper.CreateLinearModel(MLParameters.Input_size);
+            }
+        }
+
+        for (int i = 0; i < MLParameters.models.Length; i++)
+        {
+            for (int j = 0; j < loadedModel.models[i].Wj.Count; j++)
+            {
+                //set
+                MLDLLWrapper.SetWeightValueAt(MLParameters.models[i], j, loadedModel.models[i].Wj[j]);
+            }
+        }
+    }
     #endregion
 }

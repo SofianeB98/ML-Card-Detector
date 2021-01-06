@@ -30,6 +30,9 @@ public static class MLDLLWrapper
     [DllImport("MLDLL", EntryPoint = "train_linear_model_rosenblatt")]
     public static extern void TrainLinearModelRosenblatt(System.IntPtr model, double[] all_inputs, int inputSize, int sample_counts, double[] all_expected_outputs, int expected_output_size, int epochs, double learning_rate);
     
+    [DllImport("MLDLL", EntryPoint = "setLinearWeightValueAt")]
+    public static extern double SetWeightValueAt(System.IntPtr model, int j, double val);
+    
     [DllImport("MLDLL", EntryPoint = "delete_linear_model")]
     public static extern void DeleteLinearModel(System.IntPtr model);
     #endregion

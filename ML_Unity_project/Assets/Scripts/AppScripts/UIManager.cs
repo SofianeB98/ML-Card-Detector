@@ -298,6 +298,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
+                
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:

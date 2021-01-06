@@ -211,6 +211,10 @@ extern "C"
 		}
 	}
 
+	__declspec(dllexport) void setLinearWeightValueAt(double* model, int j, double val)
+	{
+		model[j] = val;
+	}
 
 	__declspec(dllexport) void delete_linear_model(double* model)
 	{
