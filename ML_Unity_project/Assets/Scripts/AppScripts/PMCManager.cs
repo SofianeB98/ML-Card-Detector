@@ -287,6 +287,16 @@ public class PMCManager : MonoBehaviour
         
         Debug.Log("Modele sauvegarde !!");
     }
-    
+
+    public void LoadModel(string path)
+    {
+        var str = File.ReadAllText(path);
+        var loadedModel = JsonUtility.FromJson<MLP>(str);
+        
+        for (int l = 0; l < loadedModel.W.Count; l++)
+            for (int i = 0; i < loadedModel.W[l].Wi.Count; i++)
+                for (int j = 0; j < loadedModel.W[l].Wi[i].Wj.Count; j++)
+                   MLDLLWrapper.SetWeightValueAt(MLParameters.model, l, i, j, loadedModel.W[l].Wi[i].Wj[j]);
+    }
     #endregion
 }

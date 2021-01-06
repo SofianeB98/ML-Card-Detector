@@ -48,6 +48,9 @@ public static class MLDLLWrapper
     [DllImport("MLDLL", EntryPoint = "getWeightValueAt")]
     public static extern double GetWeightValueAt(System.IntPtr model, int l, int i, int j);
     
+    [DllImport("MLDLL", EntryPoint = "setWeightValueAt")]
+    public static extern double SetWeightValueAt(System.IntPtr model, int l, int i, int j, double val);
+    
     [DllImport("MLDLL", EntryPoint = "delete_model")]
     public static extern void DeleteModel(System.IntPtr model);
     #endregion
