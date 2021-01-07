@@ -15,6 +15,8 @@ public class MLManagerTexture : MachineLearningAbstract
         get { return instance; }
     }
     #endregion
+
+    public string fileName = "pmc";
     
     [Header("PMC Parameter")] 
     public int[] npl = new int[0];
@@ -312,6 +314,71 @@ public class MLManagerTexture : MachineLearningAbstract
         Debug.Log("Modèle détruit\n");
     }
 
+    public void SaveModel()
+    {
+        if (!enabled)
+            return;
+        
+        if (model.Equals(IntPtr.Zero))
+        {
+            Debug.LogError("You trying to predict these inputs, but your model is not created");
+            return;
+        }
+        
+        MLP mlp = new MLP();
+        mlp.W = new List<ListOfListDouble>();
+        mlp.NPL = npl;
+        
+        var layer_counts = npl.Length;
+        
+        for (int l = 0; l < layer_counts; ++l)
+        {
+            ListOfListDouble a = new ListOfListDouble();
+            a.Wi = new List<ListOfDouble>();
+            
+            if (l == 0)
+            {
+                ListOfDouble b = new ListOfDouble();
+                b.Wj = new List<double>();
+                b.Wj.Add(1.0);
+                a.Wi.Add(b);
+            }
+            else
+            {
+                for (int i = 0; i < mlp.NPL[l - 1] + 1; ++i)
+                {
+                    ListOfDouble b = new ListOfDouble();
+                    b.Wj = new List<double>();
+
+                    for (int j = 0; j < mlp.NPL[l] + 1; ++j)
+                    {
+                        b.Wj.Add(Random.value);
+                    }
+
+                    a.Wi.Add(b);
+                }
+            }
+
+            mlp.W.Add(a);
+        }
+        
+        for (int l = 0; l < mlp.W.Count; l++)
+            for (int i = 0; i < mlp.W[l].Wi.Count; i++)
+                for (int j = 0; j < mlp.W[l].Wi[i].Wj.Count; j++)
+                    mlp.W[l].Wi[i].Wj[j] = MLDLLWrapper.GetWeightValueAt(model, l, i, j);
+        
+        //save
+        var str = JsonUtility.ToJson(mlp, true);
+        var path = Path.Combine(Application.dataPath, "SavedModels");
+        path = Path.Combine(path, string.Format("{0}.json", fileName));
+
+        File.WriteAllText(path,str);
+
+        mlp.W.Clear();
+        
+        Debug.Log("Modele sauvegarde !!");
+    }
+    
     #endregion
 
     private int GetIndexOfHigherValueInArray(double[] ar)
