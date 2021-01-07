@@ -141,6 +141,9 @@ public class UIManager : MonoBehaviour
         if(!MLParameters.model.Equals(IntPtr.Zero))
             DeleteModel();
         
+        if(MLParameters.models.Length > 0)
+            DeleteModel();
+        
         switch (selectedModel)
         {
             case ActiveMachineLearningEnum.NONE:
@@ -148,7 +151,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
-                //
+                LinearManager.Instance.CreateModel();
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
@@ -167,11 +170,7 @@ public class UIManager : MonoBehaviour
     
     public void TrainModel()
     {
-        if (MLParameters.model.Equals(IntPtr.Zero))
-        {
-            Debug.LogWarning("Vous essayez d'entrainer un modèle inexistant...");
-            return;
-        }
+        
             
         switch (selectedModel)
         {
@@ -180,9 +179,20 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
+                if (MLParameters.models.Length <= 0)
+                {
+                    Debug.LogWarning("Vous essayez d'entrainer un modèle inexistant...");
+                    return;
+                }
+                LinearManager.Instance.TrainModel();
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                if (MLParameters.model.Equals(IntPtr.Zero))
+                {
+                    Debug.LogWarning("Vous essayez d'entrainer un modèle inexistant...");
+                    return;
+                }
                 PMCManager.Instance.TrainModel();
                 break;
             
@@ -197,11 +207,7 @@ public class UIManager : MonoBehaviour
     
     public void PredictSelection()
     {
-        if (MLParameters.model.Equals(IntPtr.Zero))
-        {
-            Debug.LogWarning("Pas de modèle crée, on ne peut rien prédire !");
-            return;
-        }
+        
 
         if (textureSelected.width <= 1)
         {
@@ -222,9 +228,20 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
+                if (MLParameters.models.Length <= 0)
+                {
+                    Debug.LogWarning("Pas de modèle crée, on ne peut rien prédire !");
+                    return;
+                }
+                LinearManager.Instance.Predict(texResized, out accuracy, out prediction);
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
+                if (MLParameters.model.Equals(IntPtr.Zero))
+                {
+                    Debug.LogWarning("Pas de modèle crée, on ne peut rien prédire !");
+                    return;
+                }
                 PMCManager.Instance.Predict(texResized, out accuracy, out prediction);
                 break;
             
@@ -248,6 +265,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
+                LinearManager.Instance.DeleteModel();
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
@@ -275,6 +293,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
+                LinearManager.Instance.SaveModel();
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
@@ -292,20 +311,32 @@ public class UIManager : MonoBehaviour
     
     public void LoadModel()
     {
+        var extensions = new [] {
+            new ExtensionFilter("Json Files", "json")
+        };
+        var path = new string[0];
+        
+        DeleteModel();
+        
         switch (selectedModel)
         {
             case ActiveMachineLearningEnum.NONE:
                 break;
             
             case ActiveMachineLearningEnum.LINEAR_MODEL:
+                path = StandaloneFileBrowser.OpenFilePanel("Choose Linear Model", Application.dataPath, extensions, false);
+
+                if (path.Length <= 0)
+                    return;
+        
+                Debug.Log($"Selected path = {path[0]}");
                 
+                LinearManager.Instance.LoadModel(path[0]);
                 break;
             
             case ActiveMachineLearningEnum.PMC_MODEL:
-                var extensions = new [] {
-                    new ExtensionFilter("Json Files", "json")
-                };
-                var path = StandaloneFileBrowser.OpenFilePanel("Choose PMC Model", Application.dataPath, extensions, false);
+                
+                path = StandaloneFileBrowser.OpenFilePanel("Choose PMC Model", Application.dataPath, extensions, false);
 
                 if (path.Length <= 0)
                     return;
@@ -313,7 +344,6 @@ public class UIManager : MonoBehaviour
                 Debug.Log($"Selected path = {path[0]}"); 
                 
                 PMCManager.Instance.LoadModel(path[0]);
-                
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:

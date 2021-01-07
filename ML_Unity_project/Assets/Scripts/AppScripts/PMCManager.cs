@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using SFB;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -279,6 +280,9 @@ public class PMCManager : MonoBehaviour
         var path = Path.Combine(Application.dataPath, "SavedModels");
         path = Path.Combine(path, "pmcCard.json");
 
+        path = StandaloneFileBrowser.SaveFilePanel("title", Application.dataPath, "namefile", "json");
+        Debug.Log($"{path}");
+        
        File.WriteAllText(path,str);
 
        mlp.W.Clear();

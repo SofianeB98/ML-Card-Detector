@@ -177,9 +177,9 @@ public class LinearManager : MonoBehaviour
         double[] resFromPtr = new double[classCount];
         System.Runtime.InteropServices.Marshal.Copy(res, resFromPtr, 0, classCount);
         
-        int foldId = MLParameters.GetIndexOfHigherValueInArray(resFromPtr);
+        int foldId = MLParameters.GetIndexOfHigherValueInArrayMulticlass(resFromPtr);
 
-        for (int i = 1; i < resFromPtr.Length; i++)
+        for (int i = 0; i < resFromPtr.Length; i++)
         {
             Debug.LogWarning($"RESULTAT ==> valeur {i} = {resFromPtr[i].ToString("0.0000")}");
         }
@@ -210,6 +210,7 @@ public class LinearManager : MonoBehaviour
     public void SaveModel()
     {
         MultiLinearModel linear = new MultiLinearModel();
+        linear.models = new List<ListOfDouble>();
         for (int i = 0; i < MLParameters.models.Length; i++)
         {
             ListOfDouble tmp = new ListOfDouble();
@@ -225,7 +226,7 @@ public class LinearManager : MonoBehaviour
         //save
         var str = JsonUtility.ToJson(linear, true);
         var path = Path.Combine(Application.dataPath, "SavedModels");
-        path = Path.Combine(path, "pmcCard.json");
+        path = Path.Combine(path, "linearCard.json");
 
         File.WriteAllText(path,str);
 

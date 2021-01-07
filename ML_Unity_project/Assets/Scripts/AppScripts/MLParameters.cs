@@ -35,4 +35,21 @@ public class MLParameters : MonoBehaviour
 
         return idx - 1;
     }
+    
+    public static int GetIndexOfHigherValueInArrayMulticlass(double[] ar)
+    {
+        int idx = 0;
+        double val = 0;
+
+        for (int i = 1; i < ar.Length; i++)
+        {
+            if(ar[i] < val)
+                continue;
+
+            idx = i;
+            val = ar[i];
+        }
+
+        return idx;
+    }
 }
