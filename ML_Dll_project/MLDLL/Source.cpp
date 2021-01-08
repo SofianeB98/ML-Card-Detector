@@ -8,6 +8,119 @@
 #include <Eigen>
 #include <iostream>
 
+//calcule la valeur moyenne d'une série de data
+double calculateCenter(const std::vector<double>& data)
+{
+	double sum = 0.0;
+	for (int i = 0; i < data.size(); ++i)
+		sum += data[i];
+
+	return sum / data.size();
+}
+
+//Cherche le centre le plus proche d'une data
+int getNearest(const std::vector<double>& center, double sample)
+{
+	int idx = -1;
+	double minDist = FLT_MAX;
+
+	for (int i = 0; i < center.size(); ++i)
+	{
+		double tmp = fabs(center[i] - sample);
+		if (tmp < minDist)
+		{
+			minDist = tmp;
+			idx = i;
+		}
+	}
+
+	return idx;
+}
+
+/// <summary>
+/// return k centroids of inputs
+/// </summary>
+/// <param name="all_inputs"></param>
+/// <param name="input_count"></param>
+/// <param name="sample_counts"></param>
+/// <param name="k">class number</param>
+std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_size, int sample_counts, int k)
+{
+	//on va prendre volontairement 3 inputs de chaque classe
+	//On va théoriser que il y a autant d'input pour chaque k
+	int nbInputsPerK = sample_counts / k;
+
+	//Stocker toutes les image ?
+	std::vector<std::vector<double>> all_inputs_vec;
+
+
+	//Stock les K image
+	std::vector<std::vector<double>> centroids;
+
+	//On va stocker les images selectionné
+	std::vector<
+		std::vector<std::vector<double>> //Pour chaque K, on va stocker une liste d'image
+	> kgroup(k);
+
+	int iteration = 0;
+	while (true)
+	{
+		for (int i = 0; i < k; ++i)
+			kgroup[i].clear();
+
+		//On va chercher le centre le plus proche de chaque input
+		for (int i = 0; i < sample_counts; ++i)
+		{
+			std::vector<double> moyennes;
+			for (int n = 0; n < k; ++k)
+				moyennes.push_back(calculateCenter(centroids[k]));
+
+			int idx = getNearest(moyennes, calculateCenter(all_inputs_vec[i]));
+			kgroup[idx].push_back(all_inputs_vec[i]);
+		}
+
+		//nouveau centroids
+		std::vector<std::vector<double>> newCentroids;
+		for (int i = 0; i < k; ++i)
+		{
+			std::vector<double> tmp;
+			for (int n = 0; n < inputs_size; ++n)
+			{
+				double sum = 0.0;
+				for (int w = 0; w < kgroup[k].size(); ++w)
+					sum += kgroup[k][w][n]; //on ajoute chaque valeur N de la list K
+
+				sum /= kgroup[k].size();
+				tmp.push_back(sum);
+			}
+		}
+
+		bool isCloseToEspilon = true;
+		for (int i = 0; i < k; ++i)
+		{
+			const double tmpCenterMoyenne = calculateCenter(centroids[i]);
+			const double tmpNewCenterMoyenne = calculateCenter(newCentroids[i]);
+
+			if (fabs(tmpCenterMoyenne - tmpNewCenterMoyenne) > 0.01)
+			{
+				isCloseToEspilon = false;
+				break;
+			}
+		}
+
+		if (isCloseToEspilon)
+			break;
+
+		centroids = newCentroids;
+
+		iteration += 1;
+		if (iteration >= 10000)
+			break;
+	}
+	
+	return centroids;
+}
+
 extern "C"
 {
 #pragma region Linear Model
@@ -39,12 +152,12 @@ extern "C"
 
 		return weights;
 	}
-	
+
 
 	__declspec(dllexport) double predict_linear_model(double* model, double inputs[], int input_count, bool is_classification)
 	{
 		double sum = 0.0;
-		
+
 		/*
 		 * std::vector<double> x_k;
 		x_k.reserve(input_count + 1);
@@ -57,7 +170,7 @@ extern "C"
 			else
 				x_k.emplace_back(inputs[i - 1]);
 		}
-		
+
 		for (int i = 0; i < input_count + 1; ++i)
 		{
 			sum += model[i] * x_k[i];
@@ -67,7 +180,7 @@ extern "C"
 		x_k.clear();
 		 */
 
-		
+
 		for (int i = 0; i < input_count + 1; ++i)
 		{
 			sum += model[i] * inputs[i];
@@ -88,7 +201,7 @@ extern "C"
 		// todo
 		double* result = new double[class_count];
 		double sum = 0.0;
-		
+
 		for (int i = 0; i < class_count; ++i)
 		{
 			result[i] = predict_linear_model(model[i], inputs, input_count, is_classification);
@@ -106,13 +219,13 @@ extern "C"
 		Eigen::MatrixXd all_output_m = Eigen::MatrixXd(sample_counts, expected_output_count);
 
 		Eigen::MatrixXd w = Eigen::MatrixXd(1, input_count + 1);
-		
+
 		//on remplit les matrices
-		for(int i = 0; i < sample_counts; ++i)
+		for (int i = 0; i < sample_counts; ++i)
 		{
-			for(int j = 0; j < input_count + 1; ++j)
+			for (int j = 0; j < input_count + 1; ++j)
 			{
-				if(j == 0)
+				if (j == 0)
 					all_inputs_m(i, j) = 1;
 				else
 					all_inputs_m(i, j) = all_inputs[i * input_count + (j - 1)];
@@ -131,15 +244,15 @@ extern "C"
 
 		Eigen::MatrixXd all_inputs_m_transposed = all_inputs_m;
 		all_inputs_m_transposed.transposeInPlace();
-		
+
 		//on effectue le calcule matriciel
 		//TODO : pour le cas du tricky la pseudo inverse merde
 		w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
 
 		std::cout << "weight = \n" << w << std::endl;
-		
+
 		//On assigne les data au model
-		for(int i = 0; i < w.size(); ++i)
+		for (int i = 0; i < w.size(); ++i)
 		{
 			model[i] = w(i);
 			std::cout << model[i] << " model i" << std::endl;
@@ -178,7 +291,7 @@ extern "C"
 			int end = input_count * (k + 1);
 			for (int i = start; i < end + 1; ++i)
 			{
-				if(i == start)
+				if (i == start)
 					x_k.emplace_back(1.0);
 				else
 					x_k.emplace_back(all_inputs[i - 1]);
@@ -221,6 +334,64 @@ extern "C"
 		delete[] model;
 	}
 #pragma endregion 
+
+#pragma region RBF
+	//On crée le modèle de la même façon que le linear sauf qu'on donne le nombre de classe
+
+	__declspec(dllexport) void train_rbf_model(double* model, double all_inputs[], int input_count,
+		int sample_counts, double all_expected_outputs[], int expected_output_count, int k, double gamma, double learning_rate)
+	{
+		//On recupere les centroids
+		auto centroids = getCentroids(all_inputs, input_count, sample_counts, k);
+		
+		//Similaire au train d'un linear regressif
+		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(k, sample_counts + 1);
+		Eigen::MatrixXd all_output_m = Eigen::MatrixXd(k, expected_output_count);
+
+		Eigen::MatrixXd w = Eigen::MatrixXd(1, k + 1);
+
+		//on remplit les matrices
+		for (int i = 0; i < sample_counts; ++i)
+		{
+			for (int j = 0; j < input_count + 1; ++j)
+			{
+				if (j == 0)
+					all_inputs_m(i, j) = 1;
+				else
+					all_inputs_m(i, j) = all_inputs[i * input_count + (j - 1)];
+			}
+		}
+		std::cout << "INPUTS : \n" << all_inputs_m << std::endl;
+		
+		for (int i = 0; i < sample_counts; ++i)
+		{
+			for (int j = 0; j < expected_output_count; ++j)
+			{
+				//all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
+				all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
+			}
+		}
+		std::cout << "OUTPUTS : \n" << all_output_m << std::endl;
+
+		Eigen::MatrixXd all_inputs_m_transposed = all_inputs_m;
+		all_inputs_m_transposed.transposeInPlace();
+
+		//on effectue le calcule matriciel
+		w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
+
+		std::cout << "weight = \n" << w << std::endl;
+
+		//On assigne les data au model
+		for (int i = 0; i < w.size(); ++i)
+		{
+			model[i] = w(i);
+			std::cout << model[i] << " model i" << std::endl;
+		}
+	}
+
+
+
+#pragma	endregion 
 
 #pragma region MLP
 	struct MLP
@@ -460,7 +631,7 @@ extern "C"
 	{
 		model->w[l][i][j] = val;
 	}
-	
+
 	__declspec(dllexport) void delete_model(MLP* model)
 	{
 		model->d.clear();
