@@ -50,12 +50,18 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 	//On va théoriser que il y a autant d'input pour chaque k
 	int nbInputsPerK = sample_counts / k;
 
-	//Stocker toutes les image ?
-	std::vector<std::vector<double>> all_inputs_vec;
+	//TODO : Stocker toutes les image
+	std::vector<
+		std::vector<std::vector<double>>
+	> all_inputs_vec;
+
 
 
 	//Stock les K image
+	//TODO : on va prendre une image au piff
 	std::vector<std::vector<double>> centroids;
+
+
 
 	//On va stocker les images selectionné
 	std::vector<
@@ -65,20 +71,26 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 	int iteration = 0;
 	while (true)
 	{
-		for (int i = 0; i < k; ++i)
-			kgroup[i].clear();
+		kgroup.clear();
 
-		//On va chercher le centre le plus proche de chaque input
-		for (int i = 0; i < sample_counts; ++i)
+		std::vector<double> moyennes;
+		for (int n = 0; n < k; ++k)
+			moyennes.push_back(calculateCenter(centroids[k]));
+		
+		for (int kI = 0; kI < k; ++kI)
 		{
-			std::vector<double> moyennes;
-			for (int n = 0; n < k; ++k)
-				moyennes.push_back(calculateCenter(centroids[k]));
-
-			int idx = getNearest(moyennes, calculateCenter(all_inputs_vec[i]));
-			kgroup[idx].push_back(all_inputs_vec[i]);
+			//On va chercher le centre le plus proche de chaque input
+			for (int i = 0; i < nbInputsPerK; ++i)
+			{
+				int idx = getNearest(moyennes, calculateCenter(all_inputs_vec[k][i]));
+				kgroup[idx].push_back(all_inputs_vec[k][i]);
+			}
 		}
 
+		moyennes.clear();
+
+
+		
 		//nouveau centroids
 		std::vector<std::vector<double>> newCentroids;
 		for (int i = 0; i < k; ++i)
@@ -93,8 +105,12 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 				sum /= kgroup[k].size();
 				tmp.push_back(sum);
 			}
+
+			newCentroids.push_back(tmp);
 		}
 
+
+		
 		bool isCloseToEspilon = true;
 		for (int i = 0; i < k; ++i)
 		{
@@ -111,13 +127,20 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		if (isCloseToEspilon)
 			break;
 
+
+		
 		centroids = newCentroids;
 
+
+		
+		//security
 		iteration += 1;
 		if (iteration >= 10000)
 			break;
+
+		
 	}
-	
+
 	return centroids;
 }
 
@@ -338,31 +361,50 @@ extern "C"
 #pragma region RBF
 	//On crée le modèle de la même façon que le linear sauf qu'on donne le nombre de classe
 
+	float getDistance(std::vector<double> a, std::vector<double> b)
+	{
+		if (a.size() != b.size())
+		{
+			throw std::exception("Not same dimension");
+		}
+		float sum = 0;
+		for (int i = 0; i < a.size(); ++i)
+		{
+			sum += pow(a[i] - b[i], 2);
+		}
+		return sqrt(sum);
+	}
+
 	__declspec(dllexport) void train_rbf_model(double* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count, int k, double gamma, double learning_rate)
 	{
 		//On recupere les centroids
 		auto centroids = getCentroids(all_inputs, input_count, sample_counts, k);
-		
-		//Similaire au train d'un linear regressif
-		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(k, sample_counts + 1);
-		Eigen::MatrixXd all_output_m = Eigen::MatrixXd(k, expected_output_count);
+
+		//Cree la RBF matrice grace au centroids
+		std::vector<double> rbfInputs;
+
+		//On train comme la regression lineaire
+		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(sample_counts, k + 1);
+		Eigen::MatrixXd all_output_m = Eigen::MatrixXd(sample_counts, expected_output_count);
 
 		Eigen::MatrixXd w = Eigen::MatrixXd(1, k + 1);
 
-		//on remplit les matrices
+		// TODO LE FAIRE AVEC LE RBF INPUT
 		for (int i = 0; i < sample_counts; ++i)
 		{
-			for (int j = 0; j < input_count + 1; ++j)
+			for (int j = 0; j < k + 1; ++j)
 			{
 				if (j == 0)
 					all_inputs_m(i, j) = 1;
 				else
-					all_inputs_m(i, j) = all_inputs[i * input_count + (j - 1)];
+					all_inputs_m(i, j) = rbfInputs[i * k + (j - 1)];
 			}
 		}
-		std::cout << "INPUTS : \n" << all_inputs_m << std::endl;
-		
+
+
+
+
 		for (int i = 0; i < sample_counts; ++i)
 		{
 			for (int j = 0; j < expected_output_count; ++j)
@@ -371,12 +413,14 @@ extern "C"
 				all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
 			}
 		}
-		std::cout << "OUTPUTS : \n" << all_output_m << std::endl;
+
+
 
 		Eigen::MatrixXd all_inputs_m_transposed = all_inputs_m;
 		all_inputs_m_transposed.transposeInPlace();
 
 		//on effectue le calcule matriciel
+		//TODO : pour le cas du tricky la pseudo inverse merde
 		w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
 
 		std::cout << "weight = \n" << w << std::endl;
@@ -387,6 +431,7 @@ extern "C"
 			model[i] = w(i);
 			std::cout << model[i] << " model i" << std::endl;
 		}
+
 	}
 
 
