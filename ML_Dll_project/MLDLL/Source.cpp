@@ -55,13 +55,42 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		std::vector<std::vector<double>>
 	> all_inputs_vec;
 
+	
+	int startForK = 0;
+	int endForK = nbInputsPerK;
+	//Pour chaque classe
+	for(int kI = 0; kI < k; ++kI)
+	{
+		std::vector<std::vector<double>> listImages;
 
+		//On traverse chaque inputs
+		for (int i = startForK; i < endForK; ++i)
+		{
+			std::vector<double> images;
+			for (int j = 0; j < inputs_size; ++j)
+			{
+				images.push_back(all_inputs[i * sample_counts + j]);
+			}
+			listImages.push_back(images);
+		}
 
+		endForK += nbInputsPerK;
+		
+		all_inputs_vec.push_back(listImages);
+	}
+	
 	//Stock les K image
-	//TODO : on va prendre une image au piff
+	//TODO : on va prendre une image au piff pour chaque k
 	std::vector<std::vector<double>> centroids;
 
+	for (int kI = 0; kI < k; ++kI)
+	{
+		const int max = all_inputs_vec[kI].size();
+		const int min = 0;
+		const int rdm = rand() % (max - min) + min;
 
+		centroids.push_back(all_inputs_vec[kI][rdm]);
+	}
 
 	//On va stocker les images selectionné
 	std::vector<
@@ -73,21 +102,21 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 	{
 		kgroup.clear();
 
-		std::vector<double> moyennes;
+		std::vector<double> averages;
 		for (int n = 0; n < k; ++k)
-			moyennes.push_back(calculateCenter(centroids[k]));
+			averages.push_back(calculateCenter(centroids[k]));
 		
 		for (int kI = 0; kI < k; ++kI)
 		{
 			//On va chercher le centre le plus proche de chaque input
 			for (int i = 0; i < nbInputsPerK; ++i)
 			{
-				int idx = getNearest(moyennes, calculateCenter(all_inputs_vec[k][i]));
+				int idx = getNearest(averages, calculateCenter(all_inputs_vec[k][i]));
 				kgroup[idx].push_back(all_inputs_vec[k][i]);
 			}
 		}
 
-		moyennes.clear();
+		averages.clear();
 
 
 		
@@ -359,22 +388,48 @@ extern "C"
 #pragma endregion 
 
 #pragma region RBF
-	//On crée le modèle de la même façon que le linear sauf qu'on donne le nombre de classe
-
-	float getDistance(std::vector<double> a, std::vector<double> b)
+	double getSqrDistance(std::vector<double> &a, std::vector<double> &b)
 	{
 		if (a.size() != b.size())
-		{
 			throw std::exception("Not same dimension");
-		}
-		float sum = 0;
+		
+		double sum = 0;
 		for (int i = 0; i < a.size(); ++i)
 		{
-			sum += pow(a[i] - b[i], 2);
+			double aMinb = a[i] - b[i];
+			sum += aMinb * aMinb;
 		}
-		return sqrt(sum);
+		return sum;
 	}
 
+	std::vector<double> getRBFInputs(double all_inputs[], int input_count, int sample_counts, double gamma, std::vector<std::vector<double>> &centroids)
+	{
+		std::vector<double> rbfInputs;
+
+		std::vector<std::vector<double>> listImages;
+		for (int i = 0; i < sample_counts; ++i)
+		{
+			std::vector<double> images;
+			for (int j = 0; j < input_count; ++j)
+			{
+				images.push_back(all_inputs[i * sample_counts + j]);
+			}
+			listImages.push_back(images);
+		}
+
+		//Pour chaque image
+		for(int i = 0; i < listImages.size(); ++i)
+		{
+			for(int c = 0; c < centroids.size(); ++c)
+			{
+				double sqrDist = getSqrDistance(listImages[i], centroids[c]);
+				rbfInputs.push_back(exp(-gamma * sqrDist));
+			}
+		}
+		
+		return rbfInputs;
+	}
+	
 	__declspec(dllexport) void train_rbf_model(double* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count, int k, double gamma, double learning_rate)
 	{
@@ -382,7 +437,7 @@ extern "C"
 		auto centroids = getCentroids(all_inputs, input_count, sample_counts, k);
 
 		//Cree la RBF matrice grace au centroids
-		std::vector<double> rbfInputs;
+		std::vector<double> rbfInputs = getRBFInputs(all_inputs, input_count, sample_counts, gamma, centroids);
 
 		//On train comme la regression lineaire
 		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(sample_counts, k + 1);
@@ -390,7 +445,6 @@ extern "C"
 
 		Eigen::MatrixXd w = Eigen::MatrixXd(1, k + 1);
 
-		// TODO LE FAIRE AVEC LE RBF INPUT
 		for (int i = 0; i < sample_counts; ++i)
 		{
 			for (int j = 0; j < k + 1; ++j)
@@ -402,19 +456,13 @@ extern "C"
 			}
 		}
 
-
-
-
 		for (int i = 0; i < sample_counts; ++i)
 		{
 			for (int j = 0; j < expected_output_count; ++j)
 			{
-				//all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
 				all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
 			}
 		}
-
-
 
 		Eigen::MatrixXd all_inputs_m_transposed = all_inputs_m;
 		all_inputs_m_transposed.transposeInPlace();
@@ -433,8 +481,6 @@ extern "C"
 		}
 
 	}
-
-
 
 #pragma	endregion 
 
