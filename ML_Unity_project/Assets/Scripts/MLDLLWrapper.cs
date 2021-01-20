@@ -60,4 +60,14 @@ public static class MLDLLWrapper
 
     [DllImport("MLDLL", EntryPoint = "delete_double_array_ptr")]
     public static extern void DeleteDoubleArrayPtr(System.IntPtr ptr);
+
+    #region RBF Functions
+
+    [DllImport("MLDLL", EntryPoint = "train_rbf_model")]
+    public static extern void TrainRBFModel(System.IntPtr model, double[] all_inputs, int input_count, int sample_counts, double[] all_expected_outputs, int expected_output_count, int k, double gamma);
+
+    [DllImport("MLDLL", EntryPoint = "predict_rbf")]
+    public static extern int PredictRBF(System.IntPtr model, double[] inputs, int inputSize, double gamma, int k);
+
+    #endregion
 }

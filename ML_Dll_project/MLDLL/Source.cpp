@@ -431,7 +431,7 @@ extern "C"
 	}
 	
 	__declspec(dllexport) void train_rbf_model(double* model, double all_inputs[], int input_count,
-		int sample_counts, double all_expected_outputs[], int expected_output_count, int k, double gamma, double learning_rate)
+		int sample_counts, double all_expected_outputs[], int expected_output_count, int k, double gamma)
 	{
 		//On recupere les centroids
 		auto centroids = getCentroids(all_inputs, input_count, sample_counts, k);
@@ -482,6 +482,11 @@ extern "C"
 
 	}
 
+	__declspec(dllexport) int predict_rbf(double* model, double inputs[], int input_count, double gamma, int k)
+	{
+		return 0;
+	}
+	
 #pragma	endregion 
 
 #pragma region MLP
