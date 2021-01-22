@@ -63,11 +63,17 @@ public static class MLDLLWrapper
 
     #region RBF Functions
 
+    [DllImport("MLDLL", EntryPoint = "create_rbf_model")]
+    public static extern System.IntPtr CreateRBFModel(int k, double gamma);
+
     [DllImport("MLDLL", EntryPoint = "train_rbf_model")]
-    public static extern void TrainRBFModel(System.IntPtr model, double[] all_inputs, int input_count, int sample_counts, double[] all_expected_outputs, int expected_output_count, int k, double gamma);
+    public static extern void TrainRBFModel(System.IntPtr model, double[] all_inputs, int input_count, int sample_counts, double[] all_expected_outputs, int expected_output_count);
 
     [DllImport("MLDLL", EntryPoint = "predict_rbf")]
-    public static extern int PredictRBF(System.IntPtr model, double[] inputs, int inputSize, double gamma, int k);
+    public static extern double PredictRBF(System.IntPtr model, double[] inputs, int inputSize);
 
+    [DllImport("MLDLL", EntryPoint = "delete_rbf_model")]
+    public static extern double DeleteRBFModel(System.IntPtr model);
+    
     #endregion
 }

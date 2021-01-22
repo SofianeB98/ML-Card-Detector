@@ -55,11 +55,11 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		std::vector<std::vector<double>>
 	> all_inputs_vec;
 
-	
+
 	int startForK = 0;
 	int endForK = nbInputsPerK;
 	//Pour chaque classe
-	for(int kI = 0; kI < k; ++kI)
+	for (int kI = 0; kI < k; ++kI)
 	{
 		std::vector<std::vector<double>> listImages;
 
@@ -75,10 +75,10 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		}
 
 		endForK += nbInputsPerK;
-		
+
 		all_inputs_vec.push_back(listImages);
 	}
-	
+
 	//Stock les K image
 	//TODO : on va prendre une image au piff pour chaque k
 	std::vector<std::vector<double>> centroids;
@@ -105,7 +105,7 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		std::vector<double> averages;
 		for (int n = 0; n < k; ++k)
 			averages.push_back(calculateCenter(centroids[k]));
-		
+
 		for (int kI = 0; kI < k; ++kI)
 		{
 			//On va chercher le centre le plus proche de chaque input
@@ -119,7 +119,7 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		averages.clear();
 
 
-		
+
 		//nouveau centroids
 		std::vector<std::vector<double>> newCentroids;
 		for (int i = 0; i < k; ++i)
@@ -139,7 +139,7 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		}
 
 
-		
+
 		bool isCloseToEspilon = true;
 		for (int i = 0; i < k; ++i)
 		{
@@ -157,21 +157,83 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 			break;
 
 
-		
+
 		centroids = newCentroids;
 
 
-		
+
 		//security
 		iteration += 1;
 		if (iteration >= 10000)
 			break;
 
-		
+
 	}
 
 	return centroids;
 }
+
+double getSqrDistance(std::vector<double>& a, std::vector<double>& b)
+{
+	if (a.size() != b.size())
+		throw std::exception("Not same dimension");
+
+	double sum = 0;
+	for (int i = 0; i < a.size(); ++i)
+	{
+		double aMinb = a[i] - b[i];
+		sum += aMinb * aMinb;
+	}
+	return sum;
+}
+
+std::vector<double> getRBFInputs(double all_inputs[], int input_count, int sample_counts, double gamma, std::vector<std::vector<double>>& centroids)
+{
+	std::vector<double> rbfInputs;
+
+	std::vector<std::vector<double>> listImages;
+	for (int i = 0; i < sample_counts; ++i)
+	{
+		std::vector<double> images;
+		for (int j = 0; j < input_count; ++j)
+		{
+			images.push_back(all_inputs[i * sample_counts + j]);
+		}
+		listImages.push_back(images);
+	}
+
+	//Pour chaque image
+	for (int i = 0; i < listImages.size(); ++i)
+	{
+		for (int c = 0; c < centroids.size(); ++c)
+		{
+			double sqrDist = getSqrDistance(listImages[i], centroids[c]);
+			rbfInputs.push_back(exp(-gamma * sqrDist));
+		}
+	}
+
+	return rbfInputs;
+}
+
+std::vector<double> getRBFInputs(double inputs[], int input_count, double gamma, std::vector<std::vector<double>>& centroids)
+{
+	std::vector<double> rbfInputs;
+
+	std::vector<double> images;
+	for (int i = 0; i < input_count; ++i)
+		images.push_back(inputs[i]);
+
+	//Pour chaque image
+	for (int c = 0; c < centroids.size(); ++c)
+	{
+		double sqrDist = getSqrDistance(images, centroids[c]);
+		rbfInputs.push_back(exp(-gamma * sqrDist));
+	}
+
+
+	return rbfInputs;
+}
+
 
 extern "C"
 {
@@ -388,56 +450,45 @@ extern "C"
 #pragma endregion 
 
 #pragma region RBF
-	double getSqrDistance(std::vector<double> &a, std::vector<double> &b)
+	struct RBF
 	{
-		if (a.size() != b.size())
-			throw std::exception("Not same dimension");
+		std::vector<std::vector<double>> centroids;
+		std::vector<double> w;
+		double gamma;
+		int k;
+	};
+
+	//DLL FUNCTIONS
+	__declspec(dllexport) RBF* create_rbf_model(int k, double gamma)
+	{
+		auto rbf = new RBF;
+
+		rbf->k = k;
+		rbf->gamma = gamma;
 		
-		double sum = 0;
-		for (int i = 0; i < a.size(); ++i)
+		//On crée un tableau de input + 1 pour inclure le biais
+		rbf->w.reserve(k + 2);
+		
+		//Initialise le model avec des poids random selon le nombre d'input
+		for (auto i = 0; i < rbf->k + 1; ++i)
 		{
-			double aMinb = a[i] - b[i];
-			sum += aMinb * aMinb;
-		}
-		return sum;
-	}
-
-	std::vector<double> getRBFInputs(double all_inputs[], int input_count, int sample_counts, double gamma, std::vector<std::vector<double>> &centroids)
-	{
-		std::vector<double> rbfInputs;
-
-		std::vector<std::vector<double>> listImages;
-		for (int i = 0; i < sample_counts; ++i)
-		{
-			std::vector<double> images;
-			for (int j = 0; j < input_count; ++j)
-			{
-				images.push_back(all_inputs[i * sample_counts + j]);
-			}
-			listImages.push_back(images);
-		}
-
-		//Pour chaque image
-		for(int i = 0; i < listImages.size(); ++i)
-		{
-			for(int c = 0; c < centroids.size(); ++c)
-			{
-				double sqrDist = getSqrDistance(listImages[i], centroids[c]);
-				rbfInputs.push_back(exp(-gamma * sqrDist));
-			}
+			rbf->w.push_back(rand() / static_cast<double>(RAND_MAX) * 2.0 - 1.0);
 		}
 		
-		return rbfInputs;
+		return rbf;
 	}
-	
-	__declspec(dllexport) void train_rbf_model(double* model, double all_inputs[], int input_count,
-		int sample_counts, double all_expected_outputs[], int expected_output_count, int k, double gamma)
+
+	__declspec(dllexport) void train_rbf_model(RBF* model, double all_inputs[], int input_count,
+		int sample_counts, double all_expected_outputs[], int expected_output_count)
 	{
+		int k = model->k;
+		double gamma = model->gamma;
+		
 		//On recupere les centroids
-		auto centroids = getCentroids(all_inputs, input_count, sample_counts, k);
+		model->centroids = getCentroids(all_inputs, input_count, sample_counts, k);
 
 		//Cree la RBF matrice grace au centroids
-		std::vector<double> rbfInputs = getRBFInputs(all_inputs, input_count, sample_counts, gamma, centroids);
+		std::vector<double> rbfInputs = getRBFInputs(all_inputs, input_count, sample_counts, gamma, model->centroids);
 
 		//On train comme la regression lineaire
 		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(sample_counts, k + 1);
@@ -471,22 +522,37 @@ extern "C"
 		//TODO : pour le cas du tricky la pseudo inverse merde
 		w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
 
-		std::cout << "weight = \n" << w << std::endl;
+		//std::cout << "weight = \n" << w << std::endl;
 
 		//On assigne les data au model
+		model->w.clear();
 		for (int i = 0; i < w.size(); ++i)
 		{
-			model[i] = w(i);
-			std::cout << model[i] << " model i" << std::endl;
+			model->w.push_back(w(i));
 		}
-
 	}
 
-	__declspec(dllexport) int predict_rbf(double* model, double inputs[], int input_count, double gamma, int k)
+	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count)
 	{
-		return 0;
+		std::vector<double> rbfInputs = getRBFInputs(inputs, input_count, model->gamma, model->centroids);
+
+		double sum = 0.0;
+
+		sum += model->w[0] * 1.0;
+		for (int i = 0; i < model->k; ++i)
+			sum += rbfInputs[i] * model->w[i + 1];
+		
+		return sum;
 	}
-	
+
+	__declspec(dllexport) void delete_rbf_model(RBF* model)
+	{
+		model->w.clear();
+		model->centroids.clear();
+		
+		delete model;
+	}
+	// --------------------
 #pragma	endregion 
 
 #pragma region MLP
