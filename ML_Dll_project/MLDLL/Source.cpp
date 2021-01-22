@@ -55,7 +55,14 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		std::vector<std::vector<double>>
 	> all_inputs_vec;
 
-
+	for (int i = 0; i < sample_counts; ++i)
+	{
+		for (int j = 0; j < inputs_size; ++j)
+		{
+			std::cout << all_inputs[i * inputs_size + j] << std::endl;
+		}
+	}
+	
 	int startForK = 0;
 	int endForK = nbInputsPerK;
 	//Pour chaque classe
@@ -69,11 +76,12 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 			std::vector<double> images;
 			for (int j = 0; j < inputs_size; ++j)
 			{
-				images.push_back(all_inputs[i * sample_counts + j]);
+				images.push_back(all_inputs[i * inputs_size + j]);
 			}
 			listImages.push_back(images);
 		}
-
+		
+		startForK = endForK;
 		endForK += nbInputsPerK;
 
 		all_inputs_vec.push_back(listImages);
@@ -102,17 +110,23 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 	{
 		kgroup.clear();
 
+		for(int i = 0; i < k; ++i)
+		{
+			std::vector<std::vector<double>> tmp;
+			kgroup.push_back(tmp);
+		}
+		
 		std::vector<double> averages;
-		for (int n = 0; n < k; ++k)
-			averages.push_back(calculateCenter(centroids[k]));
+		for (int n = 0; n < k; ++n)
+			averages.push_back(calculateCenter(centroids[n]));
 
 		for (int kI = 0; kI < k; ++kI)
 		{
 			//On va chercher le centre le plus proche de chaque input
 			for (int i = 0; i < nbInputsPerK; ++i)
 			{
-				int idx = getNearest(averages, calculateCenter(all_inputs_vec[k][i]));
-				kgroup[idx].push_back(all_inputs_vec[k][i]);
+				int idx = getNearest(averages, calculateCenter(all_inputs_vec[kI][i]));
+				kgroup[idx].push_back(all_inputs_vec[kI][i]);
 			}
 		}
 
@@ -128,10 +142,10 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 			for (int n = 0; n < inputs_size; ++n)
 			{
 				double sum = 0.0;
-				for (int w = 0; w < kgroup[k].size(); ++w)
-					sum += kgroup[k][w][n]; //on ajoute chaque valeur N de la list K
+				for (int w = 0; w < kgroup[i].size(); ++w)
+					sum += kgroup[i][w][n]; //on ajoute chaque valeur N de la list K
 
-				sum /= kgroup[k].size();
+				sum /= kgroup[i].size();
 				tmp.push_back(sum);
 			}
 
@@ -197,7 +211,7 @@ std::vector<double> getRBFInputs(double all_inputs[], int input_count, int sampl
 		std::vector<double> images;
 		for (int j = 0; j < input_count; ++j)
 		{
-			images.push_back(all_inputs[i * sample_counts + j]);
+			images.push_back(all_inputs[i * input_count + j]);
 		}
 		listImages.push_back(images);
 	}
@@ -494,18 +508,19 @@ extern "C"
 		Eigen::MatrixXd all_inputs_m = Eigen::MatrixXd(sample_counts, k + 1);
 		Eigen::MatrixXd all_output_m = Eigen::MatrixXd(sample_counts, expected_output_count);
 
-		Eigen::MatrixXd w = Eigen::MatrixXd(1, k + 1);
+		//Eigen::MatrixXd w = Eigen::MatrixXd(1, k + 1);
 
 		for (int i = 0; i < sample_counts; ++i)
 		{
 			for (int j = 0; j < k + 1; ++j)
 			{
 				if (j == 0)
-					all_inputs_m(i, j) = 1;
+					all_inputs_m(i, j) = 1.0;
 				else
 					all_inputs_m(i, j) = rbfInputs[i * k + (j - 1)];
 			}
 		}
+		std::cout << "inputs = \n" << all_inputs_m << std::endl;
 
 		for (int i = 0; i < sample_counts; ++i)
 		{
@@ -514,15 +529,17 @@ extern "C"
 				all_output_m(i, j) = all_expected_outputs[i * expected_output_count + j];
 			}
 		}
+		std::cout << "output = \n" << all_output_m << std::endl;
 
+		
 		Eigen::MatrixXd all_inputs_m_transposed = all_inputs_m;
 		all_inputs_m_transposed.transposeInPlace();
 
 		//on effectue le calcule matriciel
 		//TODO : pour le cas du tricky la pseudo inverse merde
-		w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
+		auto w = (all_inputs_m_transposed * all_inputs_m).inverse() * all_inputs_m_transposed * all_output_m;
 
-		//std::cout << "weight = \n" << w << std::endl;
+		std::cout << "weight = \n" << w << "\n\n" << std::endl;
 
 		//On assigne les data au model
 		model->w.clear();
@@ -530,6 +547,7 @@ extern "C"
 		{
 			model->w.push_back(w(i));
 		}
+		
 	}
 
 	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count)
