@@ -913,6 +913,7 @@ MonoBehaviour:
   foldersName:
   - Magic
   - Pokemon
+  - Yugioh
 --- !u!114 &1195314290
 MonoBehaviour:
   m_ObjectHideFlags: 0

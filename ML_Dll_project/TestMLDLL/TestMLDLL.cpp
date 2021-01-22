@@ -117,20 +117,50 @@ int main()
 	delete_model(model);*/
 
 	double X[] = {
-		1.0, 2.0, 3.0
+		1.0, 1.0,
+		2.0, 2.0, 
+		0.5, 0.2,
+		0.5, 0.6,
+		
+		3.2, 0.1,
+		4.25, 1.5,
+		4.9, 1.9,
+		3.55, 0.9,
+
+		4.1, 4.1,
+		6.0, 6.0,
+		5.25, 4.5,
+		4.5, 5.6
 	};
 
 	double Xk[] = {
-		3.0
+		4.5, 1.5
 	};
 	
 	double Y[] = {
-		0.0, 3.0, 2.0
+		1.0, 0.0, 0.0,
+		1.0, 0.0, 0.0,
+		1.0, 0.0, 0.0,
+		1.0, 0.0, 0.0,
+
+		0.0, 1.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 1.0, 0.0,
+		
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 1.0,
 	};
+
+	int input_count = 2;
+	int classCount = 3;
+	double gamma = 1.0;
 	
-	auto model = create_rbf_model(3, 1.0);
-	train_rbf_model(model, X, 1, 3, Y, 1);
-	auto p = predict_rbf(model, Xk, 1);
+	auto model = create_rbf_model(classCount, gamma);
+	train_rbf_model(model, X, input_count, 12, Y, classCount);
+	auto p = predict_rbf(model, Xk, input_count);
 	
 	std::cout << p << " prediction" << std::endl;
 

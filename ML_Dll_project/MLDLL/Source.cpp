@@ -18,15 +18,48 @@ double calculateCenter(const std::vector<double>& data)
 	return sum / data.size();
 }
 
+double getSqrDistance(std::vector<double>& a, std::vector<double>& b)
+{
+	if (a.size() != b.size())
+		throw std::exception("Not same dimension");
+
+	double sum = 0;
+	for (int i = 0; i < a.size(); ++i)
+	{
+		double aMinb = a[i] - b[i];
+		sum += aMinb * aMinb;
+	}
+	return sum;
+}
+
 //Cherche le centre le plus proche d'une data
-int getNearest(const std::vector<double>& center, double sample)
+int getNearest(const std::vector<double>& avgCenter, double sample)
+{
+	int idx = -1;
+	double minDist = FLT_MAX;
+
+	for (int i = 0; i < avgCenter.size(); ++i)
+	{
+		double tmp = fabs(avgCenter[i] - sample);
+		if (tmp < minDist)
+		{
+			minDist = tmp;
+			idx = i;
+		}
+	}
+
+	return idx;
+}
+
+//Cherche le centre le plus proche d'une data
+int getNearest(std::vector<std::vector<double>>& center, std::vector<double>& sample)
 {
 	int idx = -1;
 	double minDist = FLT_MAX;
 
 	for (int i = 0; i < center.size(); ++i)
 	{
-		double tmp = fabs(center[i] - sample);
+		double tmp = getSqrDistance(center[i], sample);//fabs(avgCenter[i] - sample);
 		if (tmp < minDist)
 		{
 			minDist = tmp;
@@ -55,14 +88,6 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 		std::vector<std::vector<double>>
 	> all_inputs_vec;
 
-	for (int i = 0; i < sample_counts; ++i)
-	{
-		for (int j = 0; j < inputs_size; ++j)
-		{
-			std::cout << all_inputs[i * inputs_size + j] << std::endl;
-		}
-	}
-	
 	int startForK = 0;
 	int endForK = nbInputsPerK;
 	//Pour chaque classe
@@ -116,21 +141,21 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 			kgroup.push_back(tmp);
 		}
 		
-		std::vector<double> averages;
-		for (int n = 0; n < k; ++n)
-			averages.push_back(calculateCenter(centroids[n]));
+		//std::vector<double> averages;
+		//for (int n = 0; n < k; ++n)
+		//	averages.push_back(calculateCenter(centroids[n]));
 
 		for (int kI = 0; kI < k; ++kI)
 		{
 			//On va chercher le centre le plus proche de chaque input
 			for (int i = 0; i < nbInputsPerK; ++i)
 			{
-				int idx = getNearest(averages, calculateCenter(all_inputs_vec[kI][i]));
+				int idx = getNearest(centroids, all_inputs_vec[kI][i]);//getNearest(averages, calculateCenter(all_inputs_vec[kI][i]));
 				kgroup[idx].push_back(all_inputs_vec[kI][i]);
 			}
 		}
 
-		averages.clear();
+		//averages.clear();
 
 
 
@@ -185,20 +210,6 @@ std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_si
 	}
 
 	return centroids;
-}
-
-double getSqrDistance(std::vector<double>& a, std::vector<double>& b)
-{
-	if (a.size() != b.size())
-		throw std::exception("Not same dimension");
-
-	double sum = 0;
-	for (int i = 0; i < a.size(); ++i)
-	{
-		double aMinb = a[i] - b[i];
-		sum += aMinb * aMinb;
-	}
-	return sum;
 }
 
 std::vector<double> getRBFInputs(double all_inputs[], int input_count, int sample_counts, double gamma, std::vector<std::vector<double>>& centroids)
@@ -554,13 +565,22 @@ extern "C"
 	{
 		std::vector<double> rbfInputs = getRBFInputs(inputs, input_count, model->gamma, model->centroids);
 
-		double sum = 0.0;
 
-		sum += model->w[0] * 1.0;
-		for (int i = 0; i < model->k; ++i)
-			sum += rbfInputs[i] * model->w[i + 1];
+		std::vector<double> allSum;
+
+		for(int kI = 0; kI < model->k; ++kI)
+		{
+			double sum = 0.0;
+			sum += model->w[kI * model->k] * 1.0;
+			for (int i = 0; i < rbfInputs.size(); ++i)
+				sum += rbfInputs[i] * model->w[kI * model->k + (i + 1)];
+			
+			allSum.push_back(sum);
+		}
+
+		int idx =  std::max_element(allSum.begin(), allSum.end()) - allSum.begin();
 		
-		return sum;
+		return (idx * 1.0);
 	}
 
 	__declspec(dllexport) void delete_rbf_model(RBF* model)

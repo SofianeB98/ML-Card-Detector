@@ -5,45 +5,46 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class RBFMLManager : MachineLearningAbstract
-{ 
-    [Header("Dataset")]
-    public TextureClass[] datasets = new TextureClass[0];
+{
+    [Header("Dataset")] public TextureClass[] datasets = new TextureClass[0];
     private double[] inputs_dataset = new double[0];
     private double[] outputs = new double[0];
     public int k = 1;
-    
+
     #region Callbacks Unity
+
     private void OnDestroy()
     {
         DeleteModel();
     }
 
     #endregion
-    
+
     public override void CreateModel()
     {
         if (!enabled)
             return;
-        
+
         if (!model.Equals(IntPtr.Zero))
         {
             Debug.LogError("You trying to created an other model, we delete the old model before");
-            MLDLLWrapper.DeleteModel(model);
+            DeleteModel();
             Debug.Log("Modèle détruit\n");
         }
 
         k = TexturesDataset.completeDatasetByClasses.Keys.Count;
-        
+
         if (isClassification)
             model = MLDLLWrapper.CreateRBFModel(k, alpha);
         Debug.Log("Modèle créé \n");
-        
+
         //On initialise les inputs
-        int isize = TexturesDataset.completeDatasetByClasses[0][0].width * TexturesDataset.completeDatasetByClasses[0][0].height;
+        int isize = TexturesDataset.completeDatasetByClasses[0][0].width *
+                    TexturesDataset.completeDatasetByClasses[0][0].height;
         input_size = isize;
 
         //TODO : a quoi correspond l'output size ? Peut etre à K ou bien à 1
-        output_size = 1;
+        output_size = k;
     }
 
     public override void TrainModel()
@@ -55,7 +56,7 @@ public class RBFMLManager : MachineLearningAbstract
             Debug.LogError("You trying to train your model, but it's not created");
             return;
         }
-        
+
         //On crée notre dataset selon le poucentage que l'on veut utiliser
         //On va prendre autant de texture de chaque classe
         //On cherche d'abord la classe qui va nous donner le moins de texture avec le poucentage voulu
@@ -65,11 +66,12 @@ public class RBFMLManager : MachineLearningAbstract
             if (texCounts == -1)
                 texCounts = Mathf.RoundToInt(TexturesDataset.completeDatasetByClasses[i].Length * useDatasetAsNPercent);
             else
-                texCounts = texCounts > Mathf.RoundToInt(TexturesDataset.completeDatasetByClasses[i].Length * useDatasetAsNPercent)
+                texCounts = texCounts > Mathf.RoundToInt(TexturesDataset.completeDatasetByClasses[i].Length *
+                                                         useDatasetAsNPercent)
                     ? Mathf.RoundToInt(TexturesDataset.completeDatasetByClasses[i].Length * useDatasetAsNPercent)
                     : texCounts;
         }
-        
+
         //On crée le tableau de texture avec autant de counts par classe
         datasets = new TextureClass[texCounts * TextureLoader.Instance.foldersName.Length];
         int idx = 0;
@@ -79,7 +81,8 @@ public class RBFMLManager : MachineLearningAbstract
             List<int> randomIndex = new List<int>();
 
             if (!TexturesDataset.unusedDatasetByClasses.ContainsKey(i))
-                TexturesDataset.unusedDatasetByClasses.Add(i, new Texture2D[TexturesDataset.completeDatasetByClasses[i].Length - texCounts]);
+                TexturesDataset.unusedDatasetByClasses.Add(i,
+                    new Texture2D[TexturesDataset.completeDatasetByClasses[i].Length - texCounts]);
 
             for (int j = 0; j < texCounts; j++)
             {
@@ -112,7 +115,7 @@ public class RBFMLManager : MachineLearningAbstract
                 tmp++;
             }
         }
-        
+
         //On remplit de double[] array
         inputs_dataset = new double[datasets.Length * input_size];
         outputs = new double[datasets.Length * output_size];
@@ -130,20 +133,20 @@ public class RBFMLManager : MachineLearningAbstract
             }
 
             //TODO : Si output size = K, alors on reprend le meme principe que le PMC
-            // for (int i = 0; i < output_size; i++)
-            // {
-            //     if (i == datasets[n].classe)
-            //         outputs[idx_out] = 1.0;
-            //     else
-            //         outputs[idx_out] = 0.0;
-            //
-            //     idx_out++;
-            // }
-            
-            outputs[idx_out] = datasets[n].classe;
-            idx_out++;
+            for (int i = 0; i < output_size; i++)
+            {
+                if (i == datasets[n].classe)
+                    outputs[idx_out] = 1.0;
+                else
+                    outputs[idx_out] = 0.0;
+
+                idx_out++;
+            }
+
+            //outputs[idx_out] = datasets[n].classe;
+            //idx_out++;
         }
-        
+
         Debug.Log("On entraîne le modèle\n...");
         MLDLLWrapper.TrainRBFModel(this.model, inputs_dataset, this.input_size, datasets.Length, outputs, output_size);
         Debug.Log("Modèle entrainé \n");
@@ -155,7 +158,7 @@ public class RBFMLManager : MachineLearningAbstract
         //TODO : Si on get un tableau de taille K + 1 avec le biais, pour la classif suffit de prendre la valeur la plus elevé
         //TODO : Or en regression on fait quoi ? Si on suit le principe du lineare, les valeur reponse sont entre -infiny et +infiny
         //TODO : donc en soit on recupere 1 seule reponse potentielement ?
-        
+
         if (!enabled)
             return;
         if (model.Equals(IntPtr.Zero))
@@ -165,28 +168,53 @@ public class RBFMLManager : MachineLearningAbstract
         }
 
         int classId = 0;
-        double[] inputTmp = new double[input_size];
         
-        int rdm = Random.Range(0, TexturesDataset.unusedDatasetByClasses[classId].Length);
-
-        for (int i = 0; i < TexturesDataset.unusedDatasetByClasses[classId][rdm].width; i++)
+        float finalAccuracy = 0.0f;
+        for (int n = 0; n < TextureLoader.Instance.foldersName.Length; n++)
         {
-            for (int j = 0; j < TexturesDataset.unusedDatasetByClasses[classId][rdm].height; j++)
+            double[] inputTmp = new double[input_size];
+            float accuracy = 0.0f;
+
+            Debug.LogError("On commence à prédire la classe " + TextureLoader.Instance.foldersName[n]);
+            for (int t = 0; t < TexturesDataset.unusedDatasetByClasses[n].Length; t++)
             {
-                inputTmp[i * TexturesDataset.unusedDatasetByClasses[classId][rdm].width + j] =
-                    TexturesDataset.unusedDatasetByClasses[classId][rdm].GetPixel(i, j).grayscale;
+                for (int i = 0; i < TexturesDataset.unusedDatasetByClasses[n][t].width; i++)
+                {
+                    for (int j = 0; j < TexturesDataset.unusedDatasetByClasses[n][t].height; j++)
+                    {
+                        inputTmp[i * TexturesDataset.unusedDatasetByClasses[n][t].width + j] =
+                            TexturesDataset.unusedDatasetByClasses[n][t].GetPixel(i, j).grayscale;
+                    }
+                }
+
+                var res = MLDLLWrapper.PredictRBF(model, inputTmp, input_size);
+                int foldId = (int) res;
+
+                Debug.LogWarning("Prediction : " + (res).ToString("0.0") +
+                                 " -- classe = " +
+                                 TextureLoader.Instance.foldersName[foldId]);
+
+                accuracy += (TextureLoader.Instance.foldersName[foldId].Equals(TextureLoader.Instance.foldersName[n]))
+                    ? 1.0f
+                    : 0.0f;
             }
+
+            accuracy /= TexturesDataset.unusedDatasetByClasses[n].Length;
+            finalAccuracy += accuracy;
+
+            Debug.LogWarning(string.Format("L'accuracy de la classe {0} est de {1}",
+                TextureLoader.Instance.foldersName[n], accuracy));
         }
 
-        var result = MLDLLWrapper.PredictRBF(model, inputTmp, input_size);
-        Debug.Log($"Prediction = {result} et la classe normalement predict est {TextureLoader.Instance.foldersName[classId]} dont l'id est {classId}");
+        finalAccuracy /= TextureLoader.Instance.foldersName.Length;
+        Debug.LogWarning(string.Format("L'accuracy total est de {0}", finalAccuracy));
     }
 
     public override void DeleteModel()
     {
         if (model.Equals(IntPtr.Zero))
             return;
-        
+
         MLDLLWrapper.DeleteRBFModel(model);
         model = IntPtr.Zero;
         Debug.Log("Modèle détruit\n");
