@@ -7089,6 +7089,7 @@ GameObject:
   - component: {fileID: 675320864}
   - component: {fileID: 675320865}
   - component: {fileID: 675320866}
+  - component: {fileID: 675320867}
   m_Layer: 0
   m_Name: ML Manager
   m_TagString: Untagged
@@ -7122,12 +7123,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db8f2ffbb3b71704295175acf6c7c209, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  createModelOnStart: 1
-  npl: 0200000001000000
   sampleCounts: 3
   epochs: 1000
   alpha: 0.1
   isClassification: 1
+  input_size: 0
+  output_size: 0
+  trainLoopCount: 1
+  useDatasetAsNPercent: 0.5
+  npl: 0200000001000000
+  createModelOnStart: 1
   dataset:
   - {fileID: 897545457}
   - {fileID: 1831621375}
@@ -7396,22 +7401,307 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 675320863}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc835c3c1f8895a4890b84fb25d9b16c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  createModelOnStart: 1
   sampleCounts: 3
   epochs: 1000
   alpha: 0.1
   isClassification: 1
   input_size: 2
   output_size: 1
+  trainLoopCount: 1
+  useDatasetAsNPercent: 0.5
+  createModelOnStart: 1
   dataset:
   - {fileID: 897545457}
   - {fileID: 1831621375}
   - {fileID: 391742475}
+  inputs:
+  - {fileID: 97270994}
+  - {fileID: 1333419372}
+  - {fileID: 1246317804}
+  - {fileID: 1298986773}
+  - {fileID: 1898046347}
+  - {fileID: 1427040524}
+  - {fileID: 245733994}
+  - {fileID: 874611496}
+  - {fileID: 785658817}
+  - {fileID: 1676364759}
+  - {fileID: 23290275}
+  - {fileID: 463599753}
+  - {fileID: 852100007}
+  - {fileID: 737465487}
+  - {fileID: 1793393056}
+  - {fileID: 1475726539}
+  - {fileID: 78207930}
+  - {fileID: 1647613533}
+  - {fileID: 251231341}
+  - {fileID: 1489777923}
+  - {fileID: 193458999}
+  - {fileID: 965867935}
+  - {fileID: 543010914}
+  - {fileID: 1503363740}
+  - {fileID: 1895022250}
+  - {fileID: 1201739927}
+  - {fileID: 1690774470}
+  - {fileID: 608736299}
+  - {fileID: 2005454141}
+  - {fileID: 1214155310}
+  - {fileID: 285251058}
+  - {fileID: 1761464868}
+  - {fileID: 280230225}
+  - {fileID: 411467372}
+  - {fileID: 367469610}
+  - {fileID: 477538998}
+  - {fileID: 1911975861}
+  - {fileID: 1347707680}
+  - {fileID: 1494047546}
+  - {fileID: 1693712199}
+  - {fileID: 92824647}
+  - {fileID: 1477337128}
+  - {fileID: 1654340625}
+  - {fileID: 1483713092}
+  - {fileID: 1391553805}
+  - {fileID: 1598223499}
+  - {fileID: 1922058556}
+  - {fileID: 830319983}
+  - {fileID: 1952800777}
+  - {fileID: 1080329018}
+  - {fileID: 268961610}
+  - {fileID: 1756281113}
+  - {fileID: 1433329144}
+  - {fileID: 1801771868}
+  - {fileID: 1449485077}
+  - {fileID: 294906730}
+  - {fileID: 2077179219}
+  - {fileID: 1554055954}
+  - {fileID: 610467326}
+  - {fileID: 640100050}
+  - {fileID: 863404735}
+  - {fileID: 888684434}
+  - {fileID: 947153296}
+  - {fileID: 1988668408}
+  - {fileID: 718595337}
+  - {fileID: 296385599}
+  - {fileID: 756615461}
+  - {fileID: 1984873637}
+  - {fileID: 2026957567}
+  - {fileID: 1121960034}
+  - {fileID: 747153639}
+  - {fileID: 1167630654}
+  - {fileID: 1598183976}
+  - {fileID: 859235831}
+  - {fileID: 1352658201}
+  - {fileID: 600102981}
+  - {fileID: 1248867304}
+  - {fileID: 744523317}
+  - {fileID: 1782440129}
+  - {fileID: 1826402083}
+  - {fileID: 1061560496}
+  - {fileID: 508009266}
+  - {fileID: 1697987090}
+  - {fileID: 1923770553}
+  - {fileID: 1224230142}
+  - {fileID: 761123107}
+  - {fileID: 1275950492}
+  - {fileID: 128336968}
+  - {fileID: 1128971853}
+  - {fileID: 1376401592}
+  - {fileID: 487276487}
+  - {fileID: 1810635737}
+  - {fileID: 162405708}
+  - {fileID: 880580088}
+  - {fileID: 662244519}
+  - {fileID: 1174922164}
+  - {fileID: 1781115316}
+  - {fileID: 27535448}
+  - {fileID: 683906474}
+  - {fileID: 110999503}
+  - {fileID: 1457930347}
+  - {fileID: 1484703746}
+  - {fileID: 2106655232}
+  - {fileID: 1201732178}
+  - {fileID: 1963056274}
+  - {fileID: 976467085}
+  - {fileID: 1165165655}
+  - {fileID: 1882276939}
+  - {fileID: 2068181578}
+  - {fileID: 1769134512}
+  - {fileID: 846149996}
+  - {fileID: 915864287}
+  - {fileID: 376128922}
+  - {fileID: 1180180132}
+  - {fileID: 926396295}
+  - {fileID: 1472512999}
+  - {fileID: 1469703946}
+  - {fileID: 263844862}
+  - {fileID: 2026909528}
+  - {fileID: 385052138}
+  - {fileID: 754188209}
+  - {fileID: 250359319}
+  - {fileID: 1529832663}
+  - {fileID: 2067835592}
+  - {fileID: 498758976}
+  - {fileID: 161627260}
+  - {fileID: 181144057}
+  - {fileID: 2014088695}
+  - {fileID: 1107297050}
+  - {fileID: 1630327679}
+  - {fileID: 1005223462}
+  - {fileID: 937964282}
+  - {fileID: 1459855023}
+  - {fileID: 1042487108}
+  - {fileID: 1231153118}
+  - {fileID: 1005439450}
+  - {fileID: 1744187}
+  - {fileID: 1354333169}
+  - {fileID: 44332007}
+  - {fileID: 1115741546}
+  - {fileID: 1484335112}
+  - {fileID: 28941028}
+  - {fileID: 875112052}
+  - {fileID: 2098966418}
+  - {fileID: 200115636}
+  - {fileID: 1075194879}
+  - {fileID: 1707364443}
+  - {fileID: 2065861595}
+  - {fileID: 627292847}
+  - {fileID: 1141930368}
+  - {fileID: 1647111516}
+  - {fileID: 1147365776}
+  - {fileID: 1210824729}
+  - {fileID: 1038453855}
+  - {fileID: 220646856}
+  - {fileID: 157677263}
+  - {fileID: 1875404280}
+  - {fileID: 2062391789}
+  - {fileID: 1582508939}
+  - {fileID: 1458484905}
+  - {fileID: 836032627}
+  - {fileID: 1381326543}
+  - {fileID: 1849821788}
+  - {fileID: 1779969371}
+  - {fileID: 1269321627}
+  - {fileID: 526850171}
+  - {fileID: 574415932}
+  - {fileID: 2130810640}
+  - {fileID: 1430980012}
+  - {fileID: 1331747582}
+  - {fileID: 1656409192}
+  - {fileID: 456369159}
+  - {fileID: 1359456424}
+  - {fileID: 1852549483}
+  - {fileID: 1382259067}
+  - {fileID: 2129081914}
+  - {fileID: 1987800199}
+  - {fileID: 1174700457}
+  - {fileID: 159851652}
+  - {fileID: 1019954192}
+  - {fileID: 1322579159}
+  - {fileID: 543338270}
+  - {fileID: 564077895}
+  - {fileID: 581472648}
+  - {fileID: 1388521360}
+  - {fileID: 1844920656}
+  - {fileID: 282868334}
+  - {fileID: 1695009085}
+  - {fileID: 1088941582}
+  - {fileID: 1462306123}
+  - {fileID: 90316658}
+  - {fileID: 60652433}
+  - {fileID: 1397768506}
+  - {fileID: 1857886272}
+  - {fileID: 522386816}
+  - {fileID: 1461961529}
+  - {fileID: 1798781189}
+  - {fileID: 538099194}
+  - {fileID: 577180408}
+  - {fileID: 933435344}
+  - {fileID: 1993896030}
+  - {fileID: 1324714342}
+  - {fileID: 968073253}
+  - {fileID: 743314476}
+  - {fileID: 940302564}
+  - {fileID: 606239154}
+  - {fileID: 1723222867}
+  - {fileID: 1176969390}
+  - {fileID: 1883703987}
+  - {fileID: 951087245}
+  - {fileID: 1356222360}
+  - {fileID: 247136821}
+  - {fileID: 1964620784}
+  - {fileID: 2036329603}
+  - {fileID: 1651829335}
+  - {fileID: 1713563223}
+  - {fileID: 1219521133}
+  - {fileID: 1168561945}
+  - {fileID: 1172519554}
+  - {fileID: 626304545}
+  - {fileID: 1710559245}
+  - {fileID: 304237636}
+  - {fileID: 1662114744}
+  - {fileID: 2022259917}
+  - {fileID: 537262758}
+  - {fileID: 674546339}
+  - {fileID: 947106872}
+  - {fileID: 819474327}
+  - {fileID: 1924633643}
+  - {fileID: 1919361765}
+  - {fileID: 1793660353}
+  - {fileID: 1527166897}
+  - {fileID: 2024319582}
+  - {fileID: 2097152568}
+  - {fileID: 1056164912}
+  - {fileID: 233907233}
+  - {fileID: 447787420}
+  - {fileID: 977999290}
+  - {fileID: 156248555}
+  - {fileID: 45750811}
+  - {fileID: 707532156}
+  - {fileID: 1481770660}
+  - {fileID: 370540726}
+  - {fileID: 1098501192}
+  - {fileID: 1779509769}
+  - {fileID: 997293512}
+  - {fileID: 468006778}
+  - {fileID: 439686808}
+  - {fileID: 776513693}
+  - {fileID: 1400546568}
+  - {fileID: 913911613}
+  - {fileID: 1769712114}
+  - {fileID: 1631082509}
+  - {fileID: 63554083}
+  - {fileID: 1406943753}
+  - {fileID: 820712429}
+--- !u!114 &675320867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 675320863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68ed21d210090634693da3f5098ffe76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sampleCounts: 3
+  epochs: 1
+  alpha: 1
+  isClassification: 1
+  input_size: 2
+  output_size: 2
+  trainLoopCount: 1
+  useDatasetAsNPercent: 0.5
+  createModelOnStart: 1
+  dataset:
+  - {fileID: 897545457}
+  - {fileID: 1831621375}
+  - {fileID: 391742475}
+  k: 2
   inputs:
   - {fileID: 97270994}
   - {fileID: 1333419372}
@@ -9928,7 +10218,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 897545456}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 1, z: 4.23}
+  m_LocalPosition: {x: 1, y: 1, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1869884968}
@@ -24231,6 +24521,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 675320867}
+        m_MethodName: TrainModel
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2013613775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25292,6 +25593,17 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 675320866}
+        m_MethodName: Predict
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 675320867}
         m_MethodName: Predict
         m_Mode: 1
         m_Arguments:

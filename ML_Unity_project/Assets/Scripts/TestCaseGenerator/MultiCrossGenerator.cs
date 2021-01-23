@@ -21,8 +21,9 @@ public class MultiCrossGenerator : MonoBehaviour
     
     void Start()
     {
-        MLManager.Instance.dataset = new Transform[totalSphere];
+        MultiLayerPerceptronMLManager.Instance.dataset = new Transform[totalSphere];
         LinearMulticlassMLManager.Instance.dataset = new Transform[totalSphere];
+        RadialBasisFunctionMLManager.Instance.dataset = new Transform[totalSphere];
         for (int i = 0; i < totalSphere; i++)
         {
             Vector3 p = new Vector3(Random.Range(-1.0f, 1.01f), 0, Random.Range(-1.0f, 1.01f));
@@ -33,8 +34,9 @@ public class MultiCrossGenerator : MonoBehaviour
                 Transform tr = Instantiate( sphereBleu, p,
                     Quaternion.identity, datasetParent).transform;
                 tr.localScale = Vector3.one * sphereScale;
-                MLManager.Instance.dataset[i] = tr;
+                MultiLayerPerceptronMLManager.Instance.dataset[i] = tr;
                 LinearMulticlassMLManager.Instance.dataset[i] = tr;
+                RadialBasisFunctionMLManager.Instance.dataset[i] = tr;
             }
             else if (Mathf.Abs(p.x % 0.5f) > 0.25f && Mathf.Abs(p.z % 0.5f) <= 0.25f)
             {
@@ -42,8 +44,9 @@ public class MultiCrossGenerator : MonoBehaviour
                 Transform tr = Instantiate( sphereRouge, p,
                     Quaternion.identity, datasetParent).transform;
                 tr.localScale = Vector3.one * sphereScale;
-                MLManager.Instance.dataset[i] = tr;
+                MultiLayerPerceptronMLManager.Instance.dataset[i] = tr;
                 LinearMulticlassMLManager.Instance.dataset[i] = tr;
+                RadialBasisFunctionMLManager.Instance.dataset[i] = tr;
             }
             else
             {
@@ -51,20 +54,23 @@ public class MultiCrossGenerator : MonoBehaviour
                 Transform tr = Instantiate( sphereVerte, p,
                     Quaternion.identity, datasetParent).transform;
                 tr.localScale = Vector3.one * sphereScale;
-                MLManager.Instance.dataset[i] = tr;
+                MultiLayerPerceptronMLManager.Instance.dataset[i] = tr;
                 LinearMulticlassMLManager.Instance.dataset[i] = tr;
+                RadialBasisFunctionMLManager.Instance.dataset[i] = tr;
             }
         }
 
-        MLManager.Instance.dataset = MLManager.Instance.dataset.OrderBy(t => t.position.y).ToArray();
+        MultiLayerPerceptronMLManager.Instance.dataset = MultiLayerPerceptronMLManager.Instance.dataset.OrderBy(t => t.position.y).ToArray();
         LinearMulticlassMLManager.Instance.dataset = LinearMulticlassMLManager.Instance.dataset.OrderBy(t => t.position.y).ToArray();
+        RadialBasisFunctionMLManager.Instance.dataset = RadialBasisFunctionMLManager.Instance.dataset.OrderBy(t => t.position.y).ToArray();
         
-        MLManager.Instance.sampleCounts = totalSphere;
+        MultiLayerPerceptronMLManager.Instance.sampleCounts = totalSphere;
         LinearMulticlassMLManager.Instance.sampleCounts = totalSphere;
 
         int sphereTestPerAxis = (int) Mathf.Sqrt(totalSphere);
-        MLManager.Instance.inputs = new Transform[(int)sphereTestPerAxis * sphereTestPerAxis];
+        MultiLayerPerceptronMLManager.Instance.inputs = new Transform[(int)sphereTestPerAxis * sphereTestPerAxis];
         LinearMulticlassMLManager.Instance.inputs = new Transform[(int)sphereTestPerAxis * sphereTestPerAxis];
+        RadialBasisFunctionMLManager.Instance.inputs = new Transform[(int)sphereTestPerAxis * sphereTestPerAxis];
         
         for (int i = 0; i < sphereTestPerAxis; ++i)
         {
@@ -74,8 +80,9 @@ public class MultiCrossGenerator : MonoBehaviour
                 float z = Mathf.Lerp(-1.0f, 1.01f, (float) j / (float) sphereTestPerAxis);
                 Transform tr =  Instantiate(sphereTest, new Vector3(x, 0, z), Quaternion.identity, inputsParent).transform;
                 tr.localScale =Vector3.one * sphereScale;
-                MLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
+                MultiLayerPerceptronMLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
                 LinearMulticlassMLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
+                RadialBasisFunctionMLManager.Instance.inputs[i * sphereTestPerAxis + j] = tr;
             }
         }
     }

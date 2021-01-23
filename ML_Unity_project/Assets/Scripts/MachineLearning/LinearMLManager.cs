@@ -136,7 +136,7 @@ public class LinearMLManager : MachineLearningAbstract
         if (!model.Equals(IntPtr.Zero))
         {
             Debug.LogError("You trying to created an other model, we delete the old model before");
-            MLDLLWrapper.DeleteModel(model);
+            DeleteModel();
             Debug.Log("Modèle détruit\n");
         }
         

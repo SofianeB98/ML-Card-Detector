@@ -57,7 +57,7 @@ extern "C"{
 	__declspec(dllexport) RBF* create_rbf_model(int k, double gamma);
 	__declspec(dllexport) void train_rbf_model(RBF* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count);
-	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count);
+	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count, bool isClassification);
 	__declspec(dllexport) void delete_rbf_model(RBF* model);
 }
 
@@ -154,13 +154,31 @@ int main()
 		0.0, 0.0, 1.0,
 	};
 
+	double Y2[] = {
+		1.0,
+		3.0,
+		0.2,
+		0.7,
+
+		4.0,
+		5.0,
+		2.0,
+		1.50,
+
+		3.80, 
+		8.0, 
+		9.0,
+		2.0, 
+	};
+	
 	int input_count = 2;
 	int classCount = 3;
 	double gamma = 1.0;
 	
 	auto model = create_rbf_model(classCount, gamma);
-	train_rbf_model(model, X, input_count, 12, Y, classCount);
-	auto p = predict_rbf(model, Xk, input_count);
+	//train_rbf_model(model, X, input_count, 12, Y, classCount);
+	train_rbf_model(model, X, input_count, 12, Y2, 1);
+	auto p = predict_rbf(model, Xk, input_count, false);
 	
 	std::cout << p << " prediction" << std::endl;
 

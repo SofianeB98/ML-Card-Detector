@@ -70,7 +70,7 @@ public static class MLDLLWrapper
     public static extern void TrainRBFModel(System.IntPtr model, double[] all_inputs, int input_count, int sample_counts, double[] all_expected_outputs, int expected_output_count);
 
     [DllImport("MLDLL", EntryPoint = "predict_rbf")]
-    public static extern double PredictRBF(System.IntPtr model, double[] inputs, int inputSize);
+    public static extern double PredictRBF(System.IntPtr model, double[] inputs, int inputSize, bool isClassification);
 
     [DllImport("MLDLL", EntryPoint = "delete_rbf_model")]
     public static extern double DeleteRBFModel(System.IntPtr model);

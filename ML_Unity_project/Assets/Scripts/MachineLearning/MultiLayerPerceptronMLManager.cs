@@ -3,11 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MLManager : MachineLearningAbstract
+public class MultiLayerPerceptronMLManager : MachineLearningAbstract
 {
-    private static MLManager instance;
+    private static MultiLayerPerceptronMLManager instance;
 
-    public static MLManager Instance
+    public static MultiLayerPerceptronMLManager Instance
     {
         get { return instance; }
     }

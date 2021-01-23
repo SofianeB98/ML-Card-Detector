@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class RBFMLManager : MachineLearningAbstract
+public class RBFMLManagerTexture : MachineLearningAbstract
 {
     [Header("Dataset")] public TextureClass[] datasets = new TextureClass[0];
     private double[] inputs_dataset = new double[0];
@@ -187,7 +187,7 @@ public class RBFMLManager : MachineLearningAbstract
                     }
                 }
 
-                var res = MLDLLWrapper.PredictRBF(model, inputTmp, input_size);
+                var res = MLDLLWrapper.PredictRBF(model, inputTmp, input_size, this.isClassification);
                 int foldId = (int) res;
 
                 Debug.LogWarning("Prediction : " + (res).ToString("0.0") +

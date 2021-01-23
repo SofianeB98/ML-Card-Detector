@@ -561,26 +561,36 @@ extern "C"
 		
 	}
 
-	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count)
+	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count, bool isClassification)
 	{
 		std::vector<double> rbfInputs = getRBFInputs(inputs, input_count, model->gamma, model->centroids);
 
-
-		std::vector<double> allSum;
-
-		for(int kI = 0; kI < model->k; ++kI)
+		if(isClassification)
 		{
-			double sum = 0.0;
-			sum += model->w[kI * model->k] * 1.0;
-			for (int i = 0; i < rbfInputs.size(); ++i)
-				sum += rbfInputs[i] * model->w[kI * model->k + (i + 1)];
+			std::vector<double> allSum;
+			for(int kI = 0; kI < model->k; ++kI)
+			{	
+				double sum = 0.0;
+				sum += model->w[kI * model->k] * 1.0;
+				for (int i = 0; i < rbfInputs.size(); ++i)
+					sum += rbfInputs[i] * model->w[kI * model->k + (i + 1)];
+				
+				allSum.push_back(sum);
+			}
+
+			int idx =  std::max_element(allSum.begin(), allSum.end()) - allSum.begin();
 			
-			allSum.push_back(sum);
+			return (idx * 1.0);
 		}
 
-		int idx =  std::max_element(allSum.begin(), allSum.end()) - allSum.begin();
-		
-		return (idx * 1.0);
+
+		double sum = 0.0;
+		sum += 1.0 * model->w[0];
+		for (int i = 0; i < model->k; ++i)
+		{
+			sum += rbfInputs[i] * model->w[(i+1)];;
+		}
+		return sum;
 	}
 
 	__declspec(dllexport) void delete_rbf_model(RBF* model)
