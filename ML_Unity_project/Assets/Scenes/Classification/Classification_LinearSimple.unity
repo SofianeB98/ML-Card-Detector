@@ -7693,7 +7693,7 @@ MonoBehaviour:
   alpha: 1
   isClassification: 1
   input_size: 2
-  output_size: 2
+  output_size: 1
   trainLoopCount: 1
   useDatasetAsNPercent: 0.5
   createModelOnStart: 1
