@@ -18,6 +18,8 @@ public class MLParameters : MonoBehaviour
 
     public static int TrainLoopCount = 1;
     public static float UseDatasetAsNPercent = 0.8f;
+
+    public static int k = 2;
     
     public static int GetIndexOfHigherValueInArray(double[] ar)
     {

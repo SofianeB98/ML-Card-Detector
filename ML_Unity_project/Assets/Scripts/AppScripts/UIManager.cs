@@ -18,13 +18,14 @@ public class UIManager : MonoBehaviour
     public InputField trainCountField;
     public InputField usedDataSetField;
     public InputField nplField;
+    public InputField kField;
 
     [Header("Utils UI Element")] 
     public Image selectedCard;
     private Texture2D textureSelected;
     public Text accuracyText;
     public Text answerText;
-    public Text messageText;
+    //public Text messageText;
     
     [Header("Load Card Parameter")]
     public Vector2Int resizeTo = new Vector2Int(256, 256);
@@ -42,7 +43,7 @@ public class UIManager : MonoBehaviour
         if (!MLParameters.model.Equals(IntPtr.Zero))
         {
             DeleteModel();
-            MLParameters.model = IntPtr.Zero;
+            //MLParameters.model = IntPtr.Zero;
         }
         
         //Je set la selection
@@ -50,6 +51,8 @@ public class UIManager : MonoBehaviour
         
         //J'active le npl uniquement si c'est un PMC
         nplField.transform.parent.gameObject.SetActive(selectedModel == ActiveMachineLearningEnum.PMC_MODEL);
+        
+        kField.transform.parent.gameObject.SetActive(selectedModel == ActiveMachineLearningEnum.RBF_MODEL);
 
         //J'effectuer les action necessaire
         switch (selectedModel)
@@ -132,6 +135,14 @@ public class UIManager : MonoBehaviour
             Debug.Log($"NPL {i} a été set à {tmpNpl[i]}");
         }
     }
+
+    public void SetK(string val)
+    {
+        int integerValue = int.Parse(val);
+        MLParameters.k = integerValue;
+
+        Debug.Log($"K a été set à {integerValue}");
+    }
     #endregion
     
     #region ML Functions
@@ -159,7 +170,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
-                //
+                RBFManager.Instance.CreateModel();
                 break;
      
             
@@ -169,9 +180,7 @@ public class UIManager : MonoBehaviour
     }
     
     public void TrainModel()
-    {
-        
-            
+    {  
         switch (selectedModel)
         {
             case ActiveMachineLearningEnum.NONE:
@@ -197,6 +206,12 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
+                if (MLParameters.model.Equals(IntPtr.Zero))
+                {
+                    Debug.LogWarning("Vous essayez d'entrainer un modèle inexistant...");
+                    return;
+                }
+                RBFManager.Instance.TrainModel();
                 break;
      
             
@@ -207,8 +222,6 @@ public class UIManager : MonoBehaviour
     
     public void PredictSelection()
     {
-        
-
         if (textureSelected.width <= 1)
         {
             Debug.LogWarning("Aucune Carte n'a été selectionnée..");
@@ -246,6 +259,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
+                RBFManager.Instance.Predict(texResized, out accuracy, out prediction);
                 break;
      
             
@@ -273,6 +287,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
+                RBFManager.Instance.DeleteModel();
                 break;
      
             
@@ -301,6 +316,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
+                Debug.LogWarning("Le rbf ne peut pas save de modèle");
                 break;
      
             
@@ -347,6 +363,7 @@ public class UIManager : MonoBehaviour
                 break;
             
             case ActiveMachineLearningEnum.RBF_MODEL:
+                Debug.LogWarning("Le rbf ne peut pas loader de modèle");
                 break;
      
             

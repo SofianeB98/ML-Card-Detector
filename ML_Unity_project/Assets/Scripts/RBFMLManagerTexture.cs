@@ -187,7 +187,7 @@ public class RBFMLManagerTexture : MachineLearningAbstract
                     }
                 }
 
-                var res = MLDLLWrapper.PredictRBF(model, inputTmp, input_size, this.isClassification);
+                var res = MLDLLWrapper.PredictRBF(model, inputTmp, input_size, output_size, this.isClassification);
                 int foldId = (int) res;
 
                 Debug.LogWarning("Prediction : " + (res).ToString("0.0") +

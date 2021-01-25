@@ -181,7 +181,7 @@ public class RadialBasisFunctionMLManager : MachineLearningAbstract
                 ? data[0].ToString("0.00") + ", " + data[1].ToString("0.00")
                 : data[0].ToString("0.00")) + " ] = ";
 
-            var result = MLDLLWrapper.PredictRBF(model, data, input_size, isClassification);
+            var result = MLDLLWrapper.PredictRBF(model, data, input_size, output_size, isClassification);
 
             str += result.ToString("0.000");
             Debug.LogWarning("Prediction : " + str);
