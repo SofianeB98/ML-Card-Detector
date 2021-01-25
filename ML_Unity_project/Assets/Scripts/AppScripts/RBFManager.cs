@@ -187,10 +187,16 @@ public class RBFManager : MonoBehaviour
             }
         }
 
-        var res = MLDLLWrapper.PredictRBFAndGetArray(MLParameters.model, inputTmp, MLParameters.Input_size, MLParameters.Output_size, MLParameters.IsClassification);//MLDLLWrapper.Predict(MLParameters.model, inputTmp, MLParameters.IsClassification);
+        var res = MLDLLWrapper.PredictRBFAndGetArray(MLParameters.model, inputTmp, MLParameters.Input_size,
+            MLParameters.Output_size, MLParameters.IsClassification);
         double[] resFromPtr = new double[MLParameters.Output_size + 1];
         System.Runtime.InteropServices.Marshal.Copy(res, resFromPtr, 0, MLParameters.Output_size + 1);
 
+        var dbl = MLDLLWrapper.PredictRBF(MLParameters.model, inputTmp, MLParameters.Input_size,
+            MLParameters.Output_size, false);
+        
+        Debug.LogError($"{dbl} = valeur sortie sans classif");
+        
         int foldId = MLParameters.GetIndexOfHigherValueInArray(resFromPtr);
 
         for (int i = 1; i < resFromPtr.Length; i++)

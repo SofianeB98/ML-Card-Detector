@@ -429,15 +429,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sampleCounts: 4
   epochs: 1
-  alpha: 5
+  alpha: 0.75
   isClassification: 1
   input_size: 2
-  output_size: 3
+  output_size: 1
   trainLoopCount: 1
-  useDatasetAsNPercent: 0.5
+  useDatasetAsNPercent: 0.8
   createModelOnStart: 0
   dataset: []
-  k: 3
+  k: 4
   inputs: []
 --- !u!1 &948113667
 GameObject:
