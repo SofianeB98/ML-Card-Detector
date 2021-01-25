@@ -928,14 +928,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sampleCounts: 4
   epochs: 1
-  alpha: 0.01
+  alpha: 1.5
   isClassification: 1
   input_size: 0
   output_size: 1
   trainLoopCount: 1
   useDatasetAsNPercent: 0.8
   datasets: []
-  k: 1
+  k: 3
 --- !u!4 &1195314291
 Transform:
   m_ObjectHideFlags: 0

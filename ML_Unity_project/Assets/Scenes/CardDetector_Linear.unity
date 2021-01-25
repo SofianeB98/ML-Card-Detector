@@ -604,12 +604,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29b7fa45d65a4764eac8bbc2dbc74067, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputSize: 256
-  outputSize: 1
   sampleCounts: 4
   epochs: 200
   alpha: 0.01
   isClassification: 1
+  input_size: 0
+  output_size: 1
   trainLoopCount: 1
   useDatasetAsNPercent: 0.8
   datasets: []

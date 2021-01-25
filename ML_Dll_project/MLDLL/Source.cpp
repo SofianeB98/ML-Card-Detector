@@ -79,6 +79,9 @@ int getNearest(std::vector<std::vector<double>>& center, std::vector<double>& sa
 /// <param name="k">class number</param>
 std::vector<std::vector<double>> getCentroids(double all_inputs[], int inputs_size, int sample_counts, int k)
 {
+	if (sample_counts < k)
+		k = sample_counts;
+	
 	//on va prendre volontairement 3 inputs de chaque classe
 	//On va théoriser que il y a autant d'input pour chaque k
 	int nbInputsPerK = sample_counts / k;
@@ -506,6 +509,9 @@ extern "C"
 	__declspec(dllexport) void train_rbf_model(RBF* model, double all_inputs[], int input_count,
 		int sample_counts, double all_expected_outputs[], int expected_output_count)
 	{
+		if (sample_counts < model->k)
+			model->k = sample_counts;
+		
 		int k = model->k;
 		double gamma = model->gamma;
 		
@@ -561,11 +567,11 @@ extern "C"
 		
 	}
 
-	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count, bool isClassification)
+	__declspec(dllexport) double predict_rbf(RBF* model, double inputs[], int input_count, int output_size, bool isClassification)
 	{
 		std::vector<double> rbfInputs = getRBFInputs(inputs, input_count, model->gamma, model->centroids);
 
-		if(isClassification)
+		if(isClassification && output_size > 1)
 		{
 			std::vector<double> allSum;
 			for(int kI = 0; kI < model->k; ++kI)
@@ -593,6 +599,45 @@ extern "C"
 		return sum;
 	}
 
+	__declspec(dllexport) double* predict_rbf_and_get_array(RBF* model, double inputs[], int input_count, int output_size, bool isClassification)
+	{
+		std::vector<double> rbfInputs = getRBFInputs(inputs, input_count, model->gamma, model->centroids);
+
+		if (isClassification && output_size > 1)
+		{
+			std::vector<double> allSum;
+			for (int kI = 0; kI < model->k; ++kI)
+			{
+				double sum = 0.0;
+				sum += model->w[kI * model->k] * 1.0;
+				for (int i = 0; i < rbfInputs.size(); ++i)
+					sum += rbfInputs[i] * model->w[kI * model->k + (i + 1)];
+
+				allSum.push_back(sum);
+			}
+
+			//int idx = std::max_element(allSum.begin(), allSum.end()) - allSum.begin();
+			double* out = new double[allSum.size()];
+			for (int i = 0; i < allSum.size(); ++i)
+				out[i] = allSum[i];
+			
+			return out;//(idx * 1.0);
+		}
+
+
+		double sum = 0.0;
+		sum += 1.0 * model->w[0];
+		for (int i = 0; i < model->k; ++i)
+		{
+			sum += rbfInputs[i] * model->w[(i + 1)];;
+		}
+
+		double* out = new double[1];
+		out[0] = sum;
+		
+		return out;//sum;
+	}
+	
 	__declspec(dllexport) void delete_rbf_model(RBF* model)
 	{
 		model->w.clear();

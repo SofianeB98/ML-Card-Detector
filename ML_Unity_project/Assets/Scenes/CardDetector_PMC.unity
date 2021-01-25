@@ -744,8 +744,8 @@ MonoBehaviour:
   output_size: 0
   trainLoopCount: 1
   useDatasetAsNPercent: 0.8
-  fileName: pmc_card3classes
-  npl: 010000002000000004000000
+  fileName: pmc_card4classes2
+  npl: 000100002000000004000000
   datasets: []
   classId: 0
   mode: 1
