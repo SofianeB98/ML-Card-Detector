@@ -9,13 +9,24 @@ using UnityEngine.Networking;
 
 public class TestDownloadFromPhp : MonoBehaviour
 {
+
+    //public CarteData data;
+    public AllHSCards data;
     
     private void Start()
     {
         //StartCoroutine(TestPhp());
+
+        var path = Path.Combine(Application.dataPath, "hscards.json");
+        Debug.Log(path);
+        var txt = File.ReadAllText(path);
+        Debug.Log(txt);
+        data = JsonUtility.FromJson<AllHSCards>(txt);
+        txt = JsonUtility.ToJson(this.data, true);
+        File.WriteAllText(path, txt);
+        Debug.Log("end start");
     }
 
-    public CarteData data;
     
     // private IEnumerator TestPhp()
     // {
@@ -40,4 +51,5 @@ public class TestDownloadFromPhp : MonoBehaviour
     //
     //     yield break;
     // }
+    
 }

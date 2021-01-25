@@ -138,33 +138,87 @@ public class CardDownloader : MonoBehaviour
         }
         else
         {
-            var path = Path.Combine(Application.dataPath, "ygocards.json");
-            CarteData cartes = new CarteData();
-            var txt = File.ReadAllText(path);
-            cartes = JsonUtility.FromJson<CarteData>(txt);
+            #region Yugioh
 
-            url = "https://storage.googleapis.com/ygoprodeck.com/pics/{0}.jpg";
-            
-            for (int i = 0; i < cardCount; i++)
+            if (false)
             {
-                string cName = cardName + i.ToString("0000");
-                string realUrl = string.Format(url, cartes.data[i].id);
-                using (UnityWebRequest request = UnityWebRequest.Get(realUrl))
-                {
-                    //Debug.LogWarning("Lancement de la request");
-                    // Send the request and wait for a response
-                    yield return request.SendWebRequest();
-                    string pathReal = Path.Combine(finalPath, cName);
+                var path = Path.Combine(Application.dataPath, "ygocards.json");
+                CarteData cartes = new CarteData();
+                var txt = File.ReadAllText(path);
+                cartes = JsonUtility.FromJson<CarteData>(txt);
 
-                    if (!File.Exists(pathReal))
+                url = "https://storage.googleapis.com/ygoprodeck.com/pics/{0}.jpg";
+
+                for (int i = 0; i < cardCount; i++)
+                {
+                    string cName = cardName + i.ToString("0000");
+                    string realUrl = string.Format(url, cartes.data[i].id);
+                    using (UnityWebRequest request = UnityWebRequest.Get(realUrl))
                     {
-                        var resizedImg = ResizePicture(request.downloadHandler.data, resizeTo, backgroundColor);
-                        File.WriteAllBytes(pathReal + ".jpg", resizedImg);
-                        //Debug.Log("Fichier telechargé au nom de : " + cName);
+                        //Debug.LogWarning("Lancement de la request");
+                        // Send the request and wait for a response
+                        yield return request.SendWebRequest();
+                        string pathReal = Path.Combine(finalPath, cName);
+
+                        if (!File.Exists(pathReal))
+                        {
+                            var resizedImg = ResizePicture(request.downloadHandler.data, resizeTo, backgroundColor);
+                            File.WriteAllBytes(pathReal + ".jpg", resizedImg);
+                            //Debug.Log("Fichier telechargé au nom de : " + cName);
+                        }
                     }
+
+                    yield return new WaitForSeconds(0.06f);
                 }
-                yield return new WaitForSeconds(0.06f);
             }
+            else
+            {
+                var path = Path.Combine(Application.dataPath, "hscards.json");
+                AllHSCards cartes = new AllHSCards();
+                var txt = File.ReadAllText(path);
+                cartes = JsonUtility.FromJson<AllHSCards>(txt);
+                
+                
+                
+                for (int i = 1; i < cardCount + 1; i++)
+                {
+                    string cName = cardName + i.ToString("0000");
+
+                    var id = cartes.data[i].id.Split('_')[1];
+                    
+                    if (cartes.data[i].id.EndsWith("e") ||
+                        cartes.data[i].id.Contains("copy") ||
+                        cartes.data[i].id.Contains("o") ||
+                        id.Contains("e") ||
+                        id.Contains("o") || id.Contains("copy"))
+                    {
+                        cardCount += 1;
+                        continue;
+                    }
+                    
+                    string realUrl = string.Format(url, cartes.data[i].id);
+                    using (UnityWebRequest request = UnityWebRequest.Get(realUrl))
+                    {
+                        //Debug.LogWarning("Lancement de la request");
+                        // Send the request and wait for a response
+                        yield return request.SendWebRequest();
+                        string pathReal = Path.Combine(finalPath, cName);
+
+                        if (!File.Exists(pathReal))
+                        {
+                            var resizedImg = ResizePicture(request.downloadHandler.data, resizeTo, backgroundColor);
+                            File.WriteAllBytes(pathReal + ".jpg", resizedImg);
+                            Debug.Log("Fichier telechargé au nom de : " + cName + " - " + cartes.data[i].id);
+                        }
+                    }
+
+                    yield return new WaitForSeconds(0.01f);
+                }
+                
+            }
+
+            
+            #endregion
         }
 
 
@@ -173,7 +227,7 @@ public class CardDownloader : MonoBehaviour
         yield break;
     }
 
-    
+
     public static byte[] ResizePicture(byte[] b, Vector2Int resizeTo, Color backgroundColor)
     {
         Texture2D baseImg = new Texture2D(0, 0);
@@ -201,6 +255,8 @@ public class CardDownloader : MonoBehaviour
         return finalImg.EncodeToJPG();
     }
 }
+
+#region Yu-gi-oh class
 
 public class CardSet
 {
@@ -235,3 +291,38 @@ public class CarteData
 {
     public Carte[] data;
 }
+
+#endregion
+
+#region Hearthstone class
+
+[System.Serializable]
+public class HSCard
+{
+    public string id;
+    public int dbfId;
+    public string name;
+    public string text;
+    public string flavor;
+    public string artist;
+    public int attack;
+    public string cardClass;
+    public bool collectible;
+    public int cost;
+    public bool elite;
+    public string faction;
+    public int health;
+    public string[] mechanics;
+    public string rarity;
+    public string set;
+    public string type;
+}
+
+
+[System.Serializable]
+public class AllHSCards
+{
+    public HSCard[] data;
+}
+
+#endregion

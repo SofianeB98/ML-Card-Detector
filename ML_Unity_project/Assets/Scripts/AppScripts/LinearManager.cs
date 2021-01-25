@@ -196,8 +196,17 @@ public class LinearManager : MonoBehaviour
 
     public void DeleteModel()
     {
+        if (MLParameters.models == null)
+            return;
+        
+        if (MLParameters.models.Length <= 0)
+            return;
+        
         for (int i = 0; i < MLParameters.models.Length; i++)
         {
+            if (MLParameters.models[i].Equals(IntPtr.Zero))
+                continue;
+            
             MLDLLWrapper.DeleteLinearModel(MLParameters.models[i]);
             MLParameters.models[i] = IntPtr.Zero;
         }
@@ -226,7 +235,7 @@ public class LinearManager : MonoBehaviour
         //save
         var str = JsonUtility.ToJson(linear, true);
         var path = Path.Combine(Application.dataPath, "SavedModels");
-        path = Path.Combine(path, "linearCard.json");
+        path = Path.Combine(path, "linearCard2.json");
 
         File.WriteAllText(path,str);
 

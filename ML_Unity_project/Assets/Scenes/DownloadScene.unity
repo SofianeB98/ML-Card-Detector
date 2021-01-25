@@ -305,18 +305,18 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dece77f5848eaf5429b85e7c2d40856a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   canDownload: 1
-  cardCount: 296
+  cardCount: 320
   outPath: D:\Cours\ESGI_5_Master_3DJV\Machine Learning\ML_Esgi\Dataset
-  folderName: Yugioh
+  folderName: Hearthstone
   useDic: 0
   isJson: 1
-  url: https://images.pokemontcg.io/{1}/{0}.png
+  url: https://art.hearthstonejson.com/v1/render/latest/enUS/256x/{0}.png
   resizeTo: {x: 16, y: 16}
   backgroundColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!114 &963194230

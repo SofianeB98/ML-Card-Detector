@@ -1039,6 +1039,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 359f5f3dc295849469da515438ec6e19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  datasets: []
 --- !u!1 &435292027
 GameObject:
   m_ObjectHideFlags: 0
@@ -5420,15 +5421,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 192a40ee42cab7e43a4973ab7a591aaf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sampleCounts: 4
-  epochs: 1000
-  alpha: 0.01
-  isClassification: 1
-  input_size: 0
-  output_size: 0
-  npl: 
-  trainLoopCount: 1
-  useDatasetAsNPercent: 0.5
 --- !u!1 &1927450152
 GameObject:
   m_ObjectHideFlags: 0
@@ -5499,6 +5491,7 @@ MonoBehaviour:
   - Magic
   - Pokemon
   - Yugioh
+  - Hearthstone
 --- !u!4 &1948950136
 Transform:
   m_ObjectHideFlags: 0

@@ -226,6 +226,9 @@ public class PMCManager : MonoBehaviour
 
     public void DeleteModel()
     {
+        if (MLParameters.model.Equals(IntPtr.Zero))
+            return;
+        
         MLDLLWrapper.DeleteModel(MLParameters.model);
         MLParameters.model = IntPtr.Zero;
         Debug.Log("Modèle détruit\n");
